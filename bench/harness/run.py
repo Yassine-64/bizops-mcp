@@ -48,6 +48,24 @@ def cost(model: str, usage: dict[str, int]) -> float:
     ) / 1e6
 
 
+TRANSIENT = (
+    "APITimeoutError",
+    "APIConnectionError",
+    "InternalServerError",
+    "OverloadedError",
+    "RateLimitError",
+)
+
+
+def transient(row: dict[str, Any]) -> bool:
+    """Network and capacity failures are not model behaviour: they are retried, never graded."""
+    return bool(row.get("error")) and str(row["error"]).startswith(TRANSIENT)
+
+
+def _key(row: dict[str, Any]) -> tuple[str, str, str, int]:
+    return (row["scenario"], row["arm"], row["config"], int(row["repeat"]))
+
+
 def _template(root: Path, seed: int) -> Path:
     tpl = root / "template"
     if not (tpl / "acme.db").exists():
@@ -138,7 +156,7 @@ async def main_run(args: argparse.Namespace) -> None:
     from anthropic import AsyncAnthropic
 
     settings = Settings()
-    client = AsyncAnthropic(api_key=settings.anthropic_api_key, max_retries=4)
+    client = AsyncAnthropic(api_key=settings.anthropic_api_key, max_retries=4, timeout=180.0)
     scenarios = load_scenarios(Path(args.scenarios))
     if args.only:
         scenarios = [s for s in scenarios if s.id in set(args.only.split(","))]
@@ -151,22 +169,38 @@ async def main_run(args: argparse.Namespace) -> None:
         json.dumps(await surface_tokens(client, args.model, template, arms), indent=2)
     )
 
+    results = out / "results.jsonl"
+    kept: list[str] = []
+    done_keys: set[tuple[str, str, str, int]] = set()
+    if results.exists():  # resume: keep graded rows, drop transient failures so they run again
+        for line in results.read_text().splitlines():
+            row = json.loads(line)
+            if not transient(row):
+                kept.append(line)
+                done_keys.add(_key(row))
+        results.write_text("".join(f"{line}\n" for line in kept))
     jobs = [
         (s, a, c, r)
         for r in range(args.repeat)
         for s in scenarios
         for a in arms
         for c in args.configs.split(",")
+        if (s.id, a, c, r) not in done_keys
     ]
     sem = asyncio.Semaphore(args.concurrency)
-    sink = (out / "results.jsonl").open("a")
+    sink = results.open("a")
     done = 0
     started = time.time()
 
     async def job(s: Scenario, a: Arm, c: str, r: int) -> None:
         nonlocal done
         async with sem:
-            row = await run_one(client, s, a, CONFIGS[c], args.model, r, work, template)
+            for attempt in range(1, 4):
+                row = await run_one(client, s, a, CONFIGS[c], args.model, r, work, template)
+                row["attempt"] = attempt
+                if not transient(row):
+                    break
+                await asyncio.sleep(5 * attempt)
         sink.write(json.dumps(row, default=str) + "\n")
         sink.flush()
         done += 1

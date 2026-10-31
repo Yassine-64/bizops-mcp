@@ -1,0 +1,68 @@
+[
+  {
+    "size": 25,
+    "static_tokens": 4229,
+    "tool_search_tokens": 643,
+    "discover_tokens": 897,
+    "recall@8": 1.0,
+    "recall@3": 0.923,
+    "signature_complete": 1.0,
+    "search_ms_p50": 0.073,
+    "queries": 13
+  },
+  {
+    "size": 50,
+    "static_tokens": 8029,
+    "tool_search_tokens": 643,
+    "discover_tokens": 897,
+    "recall@8": 1.0,
+    "recall@3": 0.923,
+    "signature_complete": 1.0,
+    "search_ms_p50": 0.103,
+    "queries": 13
+  },
+  {
+    "size": 100,
+    "static_tokens": 15360,
+    "tool_search_tokens": 643,
+    "discover_tokens": 897,
+    "recall@8": 0.923,
+    "recall@3": 0.923,
+    "signature_complete": 1.0,
+    "search_ms_p50": 0.165,
+    "queries": 13
+  },
+  {
+    "size": 250,
+    "static_tokens": 37533,
+    "tool_search_tokens": 643,
+    "discover_tokens": 897,
+    "recall@8": 0.923,
+    "recall@3": 0.923,
+    "signature_complete": 1.0,
+    "search_ms_p50": 0.321,
+    "queries": 13
+  },
+  {
+    "size": 500,
+    "static_tokens": 74617,
+    "tool_search_tokens": 643,
+    "discover_tokens": 897,
+    "recall@8": 0.923,
+    "recall@3": 0.923,
+    "signature_complete": 1.0,
+    "search_ms_p50": 0.483,
+    "queries": 13
+  },
+  {
+    "size": 971,
+    "static_tokens": 144545,
+    "tool_search_tokens": 643,
+    "discover_tokens": 897,
+    "recall@8": 0.923,
+    "recall@3": 0.923,
+    "signature_complete": 1.0,
+    "search_ms_p50": 0.706,
+    "queries": 13
+  }
+]

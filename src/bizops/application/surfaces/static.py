@@ -13,7 +13,7 @@ from bizops.domain.models.capability import Capability, PolicyGates
 from bizops.domain.services.signature import compact_signature, qualified_name, tool_name
 
 
-def _description(cap: Capability, gates: PolicyGates) -> str:
+def tool_description(cap: Capability, gates: PolicyGates) -> str:
     tags = compact_signature(cap, gates).rsplit("  [", 1)[-1].rstrip("]")
     return f"{cap.description} [{tags}]"
 
@@ -28,7 +28,7 @@ class StaticSurface(ExecutorSurface):
 
     def tools(self) -> list[ToolSpec]:
         return [
-            ToolSpec(tool_name(c.name), _description(c, self.gates), c.input_schema())
+            ToolSpec(tool_name(c.name), tool_description(c, self.gates), c.input_schema())
             for c in self.registry.capabilities()
         ]
 
@@ -39,4 +39,4 @@ class StaticSurface(ExecutorSurface):
         return await self._start(principal, [{"capability": name, "args": args}])
 
 
-__all__ = ["StaticSurface"]
+__all__ = ["StaticSurface", "tool_description"]

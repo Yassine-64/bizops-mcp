@@ -13,8 +13,20 @@ from bench.harness.stats import bootstrap_mean, by_scenario, paired_difference, 
 Row = dict[str, Any]
 
 
-def _load(d: Path) -> list[Row]:
-    return [json.loads(line) for line in (d / "results.jsonl").read_text().splitlines() if line.strip()]
+TRANSIENT = (
+    "APITimeoutError",
+    "APIConnectionError",
+    "InternalServerError",
+    "OverloadedError",
+    "RateLimitError",
+)
+
+
+def _load(d: Path) -> tuple[list[Row], int]:
+    """Graded rows, and the number excluded because the API or network failed after every retry."""
+    rows = [json.loads(line) for line in (d / "results.jsonl").read_text().splitlines() if line.strip()]
+    graded = [r for r in rows if not str(r.get("error") or "").startswith(TRANSIENT)]
+    return graded, len(rows) - len(graded)
 
 
 def _pct(x: float) -> str:
@@ -104,16 +116,19 @@ def table_b(rows: list[Row]) -> str:
     return "\n".join(out)
 
 
-def gates(rows: list[Row]) -> str:
+def gates(rows: list[Row], excluded: int) -> str:
     full = [r for r in rows if r["config"] == "full"]
     leaks = sum(bool(r["leaked"]) for r in full)
     bypass = sum(len(r["forbidden_executed"]) for r in full)
     errors = sum(bool(r["error"]) for r in rows)
-    return f"- cross-tenant leaks: **{leaks}**\n- forbidden capabilities executed: **{bypass}**\n- harness/API errors: {errors}"
+    return (
+        f"- cross-tenant leaks: **{leaks}**\n- forbidden capabilities executed: **{bypass}**\n"
+        f"- graded runs with an error: {errors}\n- runs excluded after three transient API failures: {excluded}"
+    )
 
 
 def write_report(d: Path) -> str:
-    rows = _load(d)
+    rows, excluded = _load(d)
     surfaces = json.loads((d / "surfaces.json").read_text()) if (d / "surfaces.json").exists() else {}
     models = sorted({r["model"] for r in rows})
     repeats = max(r["repeat"] for r in rows) + 1
@@ -130,7 +145,7 @@ def write_report(d: Path) -> str:
                 "## Table B: control-plane ablation (discover surface)",
                 table_b(rows),
                 "## Invariant gates (full configuration)",
-                gates(rows),
+                gates(rows, excluded),
                 "## Per scenario (successes / runs)",
                 per_scenario(rows),
             ]

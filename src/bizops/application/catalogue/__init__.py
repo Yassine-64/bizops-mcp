@@ -120,6 +120,12 @@ class Registry:
             amount_field=spec.amount_field,
         )
 
+    def add(self, capability: Capability, handler: Handler) -> None:
+        """Register a capability built elsewhere (catalogue-only experiments, adapters without decorators)."""
+        if capability.name in self._bound:
+            raise ValueError(f"duplicate capability {capability.name}")
+        self._bound[capability.name] = Bound(capability, handler)
+
     def get(self, name: str) -> Bound | None:
         return self._bound.get(name)
 
