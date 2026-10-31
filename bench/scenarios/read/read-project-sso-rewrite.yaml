@@ -1,4 +1,5 @@
 id: read-project-sso-rewrite
+family: read-project
 category: read
 principal: acme/bob
 task: When is the SSO rewrite project due, and how many of its issues are still open?

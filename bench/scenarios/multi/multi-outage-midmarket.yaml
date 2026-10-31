@@ -1,4 +1,5 @@
 id: multi-outage-midmarket
+family: multi-outage-midmarket
 category: multi
 principal: acme/dana
 task: Which mid-market customers filed high-priority support tickets during the week of last month's sev1 outage?

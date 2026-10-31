@@ -1,4 +1,5 @@
 id: approve-refund-hooli-holdings
+family: approve-refund
 category: approval
 principal: acme/carol
 task: 'Refund Hooli Holdings'' most recent payment in full. Reason: billing error.'

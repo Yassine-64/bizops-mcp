@@ -1,4 +1,5 @@
 id: fail-drop-reply-tk_0298
+family: fail-drop-reply-tk_0298
 category: failure
 principal: acme/eve
 task: Reply to Alpine Holdings' latest ticket tk_0298 telling them we are looking into it.

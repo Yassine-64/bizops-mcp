@@ -1,4 +1,5 @@
 id: fail-ratelimit-tickets-abstergo-systems
+family: fail-ratelimit-tickets-abstergo-systems
 category: failure
 principal: acme/eve
 task: List the support tickets Abstergo Systems opened since 2026-07-03.

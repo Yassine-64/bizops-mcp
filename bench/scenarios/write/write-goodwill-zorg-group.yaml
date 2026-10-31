@@ -1,4 +1,5 @@
 id: write-goodwill-zorg-group
+family: write-goodwill
 category: write
 principal: acme/carol
 task: Refund $50 of Zorg Group's most recent payment as a goodwill gesture.

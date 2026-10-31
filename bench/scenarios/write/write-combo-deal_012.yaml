@@ -1,4 +1,5 @@
 id: write-combo-deal_012
+family: write-combo
 category: write
 principal: acme/dana
 task: Create a P2 issue titled "SCIM deprovisioning lag" in the SSO rewrite project, and move the Massive Ltd expansion

@@ -1,4 +1,5 @@
 id: read-plan-prestige-inc
+family: read-plan
 category: read
 principal: acme/alice
 task: Which plan is Prestige Inc on, and what is its monthly recurring revenue?

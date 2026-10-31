@@ -1,4 +1,5 @@
 id: read-profile-hooli-holdings
+family: read-profile
 category: read
 principal: acme/alice
 task: What is Hooli Holdings' ARR and who owns the account?

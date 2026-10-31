@@ -1,4 +1,5 @@
 id: fail-cred-deal-deal_015
+family: fail-cred-deal-deal_015
 category: failure
 principal: acme/alice
 task: Move the Aviato Ltd expansion deal to Negotiation.

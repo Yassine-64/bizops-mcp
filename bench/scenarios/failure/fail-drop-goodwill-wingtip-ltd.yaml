@@ -1,4 +1,5 @@
 id: fail-drop-goodwill-wingtip-ltd
+family: fail-drop-goodwill
 category: failure
 principal: acme/carol
 task: Refund $50 of Wingtip Ltd's most recent payment as a goodwill gesture.

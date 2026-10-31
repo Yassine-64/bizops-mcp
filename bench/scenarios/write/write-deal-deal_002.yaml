@@ -1,4 +1,5 @@
 id: write-deal-deal_002
+family: write-deal
 category: write
 principal: acme/alice
 task: Move the Northwind Holdings expansion deal to Negotiation.

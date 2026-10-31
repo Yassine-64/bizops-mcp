@@ -1,4 +1,5 @@
 id: read-project-mobile-uploads
+family: read-project
 category: read
 principal: acme/bob
 task: When is the Mobile uploads project due, and how many of its issues are still open?

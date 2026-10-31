@@ -1,4 +1,5 @@
 id: write-issue-proration-rounding
+family: write-issue
 category: write
 principal: acme/bob
 task: Create a P1 issue titled "Proration rounding" in the Billing v2 migration project.

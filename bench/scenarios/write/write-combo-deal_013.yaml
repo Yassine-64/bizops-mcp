@@ -1,4 +1,5 @@
 id: write-combo-deal_013
+family: write-combo
 category: write
 principal: acme/dana
 task: Create a P2 issue titled "HEIC thumbnails missing" in the Mobile uploads project, and move the Veridian Systems
