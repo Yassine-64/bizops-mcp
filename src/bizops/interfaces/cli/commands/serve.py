@@ -14,19 +14,29 @@ from bizops.infrastructure.settings import Settings
 
 def serve(
     surface: str = typer.Option("discover", help="discover | static"),
-    principal: str | None = typer.Option(None, help="tenant/user; defaults to BIZOPS_PRINCIPAL"),
+    transport: str = typer.Option("stdio", help="stdio | http"),
+    principal: str | None = typer.Option(None, help="stdio only: tenant/user; defaults to BIZOPS_PRINCIPAL"),
+    host: str = typer.Option("127.0.0.1", help="http only"),
+    port: int = typer.Option(8765, help="http only"),
 ) -> None:
-    """Serve the control plane to an MCP client over stdio."""
-    from mcp.server.stdio import stdio_server
-
-    from bizops.interfaces.mcp_server import build_server
+    """Serve the control plane to MCP clients: one principal over stdio, or bearer tokens over HTTP."""
+    from bizops.infrastructure.telemetry import configure_tracing
+    from bizops.interfaces.mcp_server import build_server, http_app, principal_from_request
 
     settings = Settings()
     config = ControlPlaneConfig.load(settings.config_path).model_copy(update={"surface": surface})
     container = build_container(settings, config)
-    from bizops.infrastructure.telemetry import configure_tracing
-
     configure_tracing(settings.data_dir)
+
+    if transport == "http":
+        import uvicorn
+
+        server = build_server(container.surface(config.surface), principal_from_request)
+        uvicorn.run(http_app(server, container.tenants.authenticate_token), host=host, port=port)
+        return
+
+    from mcp.server.stdio import stdio_server
+
     spec = principal or settings.principal
     if not spec or "/" not in spec:
         raise typer.BadParameter("pass --principal tenant/user or set BIZOPS_PRINCIPAL")
@@ -34,11 +44,11 @@ def serve(
     who = container.tenants.principal(tenant, user)
     if who is None:
         raise typer.BadParameter(f"unknown principal {spec}; run `bizops seed --tenant {tenant}` first")
-    server = build_server(container.surface(config.surface), lambda _ctx: who)
+    stdio = build_server(container.surface(config.surface), lambda _ctx: who)
 
     async def main() -> Any:
         async with stdio_server() as (read, write):
-            await server.run(read, write, server.create_initialization_options())
+            await stdio.run(read, write, stdio.create_initialization_options())
 
     anyio.run(main)
 
