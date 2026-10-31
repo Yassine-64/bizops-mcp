@@ -81,3 +81,17 @@ def test_every_capability_is_described_and_classified(seeded: Container) -> None
         assert all(p.description for p in cap.parameters), f"{cap.name} has an undocumented parameter"
         if cap.send:
             assert not cap.idempotent, f"{cap.name}: a send can never be adopted after a lost response"
+
+
+async def test_payroll_is_finance_only_but_the_directory_is_open(seeded: Container) -> None:
+    for principal in ("acme/alice", "acme/bob", "acme/eve"):
+        denied = await seeded.dispatcher.run(who(seeded, principal), "people.payroll.by_department", {})
+        assert (
+            denied.decision.effect is Effect.DENY and denied.decision.rule == "scope" and not denied.executed
+        )
+        directory = await seeded.dispatcher.run(
+            who(seeded, principal), "people.employees.search", {"max_rows": 5}
+        )
+        assert directory.executed and "base_cents" not in str(directory.output)
+    payroll = await seeded.dispatcher.run(who(seeded, "acme/carol"), "people.payroll.by_department", {})
+    assert payroll.executed and {r["department"] for r in payroll.output} >= {"Engineering", "Sales"}

@@ -12,10 +12,11 @@ from pathlib import Path
 from bizops.infrastructure.connectors.billing import store as billing_store
 from bizops.infrastructure.connectors.crm import store as crm_store
 from bizops.infrastructure.connectors.engineering import store as engineering_store
+from bizops.infrastructure.connectors.people import store as people_store
 from bizops.infrastructure.connectors.support import store as support_store
 from bizops.infrastructure.connectors.usage import store as usage_store
 from bizops.infrastructure.db import connection as _sqlite
-from bizops.infrastructure.seed import billing, crm, engineering, support, usage
+from bizops.infrastructure.seed import billing, crm, engineering, people, support, usage
 from bizops.infrastructure.seed.world import USERS, World, build_world
 
 PRINCIPALS_DDL = """
@@ -30,8 +31,16 @@ SCHEMAS = [
     support_store.DDL,
     usage_store.DDL,
     engineering_store.DDL,
+    people_store.DDL,
 ]
-FIXTURES = [crm.seed, billing.seed, support.seed, usage.seed, engineering.seed]  # dependency order
+FIXTURES = [
+    crm.seed,
+    billing.seed,
+    support.seed,
+    usage.seed,
+    engineering.seed,
+    people.seed,
+]  # dependency order
 
 
 def seed_tenant(data_dir: Path, tenant: str, seed: int = 42) -> World:

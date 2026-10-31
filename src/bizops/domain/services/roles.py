@@ -5,12 +5,27 @@ from __future__ import annotations
 from bizops.domain.models import Principal
 
 ROLE_SCOPES: dict[str, frozenset[str]] = {
-    "sales": frozenset({"crm.read", "crm.write", "billing.read", "support.read", "usage.read"}),
-    "engineering": frozenset({"engineering.read", "engineering.write", "support.read", "usage.read"}),
-    "finance": frozenset(
-        {"billing.read", "billing.refund", "billing.void", "crm.read", "usage.read", "support.read"}
+    "sales": frozenset(
+        {"crm.read", "crm.write", "billing.read", "support.read", "usage.read", "people.read"}
     ),
-    "support": frozenset({"support.read", "support.reply", "crm.read", "billing.read", "usage.read"}),
+    "engineering": frozenset(
+        {"engineering.read", "engineering.write", "support.read", "usage.read", "people.read"}
+    ),
+    "finance": frozenset(
+        {
+            "billing.read",
+            "billing.refund",
+            "billing.void",
+            "crm.read",
+            "usage.read",
+            "support.read",
+            "people.read",
+            "hr.payroll.read",
+        }
+    ),
+    "support": frozenset(
+        {"support.read", "support.reply", "crm.read", "billing.read", "usage.read", "people.read"}
+    ),
     "admin": frozenset({"*"}),
 }
 
