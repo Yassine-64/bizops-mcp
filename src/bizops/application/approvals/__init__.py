@@ -13,6 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+from bizops.application.telemetry import span
 from bizops.domain.models.run import ApprovalOutcome, ApprovalRequest, Run, Step
 from bizops.domain.ports import Journal
 
@@ -48,14 +49,23 @@ class Approvals:
             expires_at=created + self.ttl,
         )
         nonce = secrets.token_urlsafe(24)
-        self.journal.create_approval(req, nonce_hash(nonce))
+        with span("bizops.approval.issue", run_id=run.id, step_id=step.id, capability=step.capability):
+            self.journal.create_approval(req, nonce_hash(nonce))
         return IssuedApproval(req, nonce)
 
     def resolve(
         self, nonce: str, *, run_id: str, step_id: str, tenant: str, approve: bool, by: str
     ) -> ApprovalOutcome:
+        with span("bizops.approval.resolve", run_id=run_id, step_id=step_id, channel="client") as s:
+            outcome = self._resolve(nonce_hash(nonce), run_id, step_id, tenant, approve, by)
+            s.set_attribute("bizops.outcome", str(outcome))
+            return outcome
+
+    def _resolve(
+        self, digest: str | None, run_id: str, step_id: str, tenant: str, approve: bool, by: str
+    ) -> ApprovalOutcome:
         return self.journal.resolve_approval(
-            nonce_hash=nonce_hash(nonce),
+            nonce_hash=digest,
             run_id=run_id,
             step_id=step_id,
             tenant=tenant,
@@ -68,15 +78,10 @@ class Approvals:
         self, *, run_id: str, step_id: str, tenant: str, approve: bool, by: str
     ) -> ApprovalOutcome:
         """`bizops approve`: local shell access is the credential, so no nonce is needed."""
-        return self.journal.resolve_approval(
-            nonce_hash=None,
-            run_id=run_id,
-            step_id=step_id,
-            tenant=tenant,
-            approve=approve,
-            by=by,
-            now=self.now(),
-        )
+        with span("bizops.approval.resolve", run_id=run_id, step_id=step_id, channel="operator") as s:
+            outcome = self._resolve(None, run_id, step_id, tenant, approve, by)
+            s.set_attribute("bizops.outcome", str(outcome))
+            return outcome
 
 
 __all__ = ["Approvals", "IssuedApproval", "nonce_hash"]

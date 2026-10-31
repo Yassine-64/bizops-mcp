@@ -15,6 +15,7 @@ from typing import Any, Literal
 from anthropic import AsyncAnthropic
 
 from bizops.application.surfaces import Surface
+from bizops.application.telemetry import span
 from bizops.domain.models import Principal
 
 Arm = Literal["static", "tool_search", "discover"]
@@ -80,6 +81,21 @@ async def run_agent(
     human: Literal["approve", "decline"],
     max_turns: int = 15,
     effort: str = "medium",
+) -> Transcript:
+    with span("bench.agent", arm=arm, model=model, tenant=principal.tenant, user=principal.user):
+        return await _loop(client, model, surface, arm, principal, task, human, max_turns, effort)
+
+
+async def _loop(
+    client: AsyncAnthropic,
+    model: str,
+    surface: Surface,
+    arm: Arm,
+    principal: Principal,
+    task: str,
+    human: Literal["approve", "decline"],
+    max_turns: int,
+    effort: str,
 ) -> Transcript:
     tools = api_tools(surface, arm)
     system = SYSTEM + SURFACE_LINE[arm]

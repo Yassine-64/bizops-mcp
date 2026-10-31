@@ -24,6 +24,9 @@ def serve(
     settings = Settings()
     config = ControlPlaneConfig.load(settings.config_path).model_copy(update={"surface": surface})
     container = build_container(settings, config)
+    from bizops.infrastructure.telemetry import configure_tracing
+
+    configure_tracing(settings.data_dir)
     spec = principal or settings.principal
     if not spec or "/" not in spec:
         raise typer.BadParameter("pass --principal tenant/user or set BIZOPS_PRINCIPAL")
@@ -59,4 +62,31 @@ def approve(
         raise typer.Exit(1)
 
 
-__all__ = ["approve", "serve"]
+def replay(run_id: str = typer.Argument(..., help="a recorded run")) -> None:
+    """Re-run a recorded run through today's policy and executor against its recorded connector results."""
+    import tempfile
+    from pathlib import Path
+
+    from bizops.application.replay import Replayer
+    from bizops.infrastructure.journal.sqlite import SqliteJournal
+
+    container = build_container()
+    scratch = Path(tempfile.mkdtemp()) / "replay.db"
+    replayer = Replayer(
+        container.journal,
+        container.registry,
+        container.gates,
+        container.tenants.principal,
+        lambda: SqliteJournal(scratch),
+        container.clock,
+        container.wall_clock,
+    )
+    report = anyio.run(replayer.replay, run_id)
+    for d in report.divergences:
+        typer.echo(f"step {d.step} {d.field}: recorded {d.recorded!r}, replayed {d.replayed!r}")
+    typer.echo(f"{run_id}: {report.steps} steps, {len(report.divergences)} divergences")
+    if not report.clean:
+        raise typer.Exit(1)
+
+
+__all__ = ["approve", "replay", "serve"]

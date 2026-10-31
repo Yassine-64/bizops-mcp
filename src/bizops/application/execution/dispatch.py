@@ -12,6 +12,7 @@ from datetime import date
 from typing import Any
 
 from bizops.application.catalogue import Registry
+from bizops.application.telemetry import span
 from bizops.domain.models import Principal
 from bizops.domain.models.capability import CallContext, Decision, Effect, PolicyGates
 from bizops.domain.ports import TenantStores
@@ -42,9 +43,19 @@ class Dispatcher:
 
     def decide(self, principal: Principal, name: str, args: dict[str, Any]) -> Decision:
         bound = self.registry.get(name)
-        if bound is None:
-            return policy.unknown(name)
-        return policy.decide(principal, bound.capability, args, self.gates)
+        d = (
+            policy.unknown(name)
+            if bound is None
+            else policy.decide(principal, bound.capability, args, self.gates)
+        )
+        with span(
+            "bizops.policy",
+            capability=name,
+            risk=str(bound.capability.risk) if bound else None,
+            effect=str(d.effect),
+            rule=d.rule,
+        ):
+            return d
 
     async def run(
         self, principal: Principal, name: str, args: dict[str, Any], operation_id: str | None = None
@@ -67,7 +78,15 @@ class Dispatcher:
         bound = self.registry.get(name)
         assert bound is not None
         started = time.perf_counter()
-        with self.stores.open(principal.tenant) as store:
+        with (
+            span(
+                "bizops.connector",
+                connector=bound.capability.connector,
+                capability=name,
+                write=bound.capability.is_write,
+            ),
+            self.stores.open(principal.tenant) as store,
+        ):
             ctx = CallContext(principal=principal, store=store, today=self.clock(), operation_id=operation_id)
             output = await bound.handler(ctx, **args)
         return CallResult(
