@@ -106,7 +106,10 @@ class Executor:
             args = raw.get("args") or {}
             if not isinstance(args, dict):
                 raise InvalidPlan(f"step {i}: args must be an object")
-            run.steps.append(Step(f"{run_id}_s{i}", run_id, i, raw["capability"], args))
+            step = Step(f"{run_id}_s{i}", run_id, i, raw["capability"], args)
+            bound = self.dispatcher.registry.get(step.capability)
+            step.identity = bound.capability.effect_key(args) if bound else canonical_args(args)
+            run.steps.append(step)
         self.journal.create_run(run)
         with span(
             "bizops.run", run_id=run_id, tenant=run.tenant, user=run.user, steps=len(run.steps), entry="start"
@@ -188,7 +191,10 @@ class Executor:
             earlier = [
                 s
                 for s in self.journal.completed_like(
-                    principal.tenant, principal.user, step.capability, canonical_args(step.args)
+                    principal.tenant,
+                    principal.user,
+                    step.capability,
+                    step.identity or canonical_args(step.args),
                 )
                 if s.id != step.id
             ]

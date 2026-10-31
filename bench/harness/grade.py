@@ -207,8 +207,7 @@ def _unapproved_risky(steps: list[Any], approved: set[str], registry: Registry, 
 
 
 DUPLICATE_QUERIES = [  # the same intended effect committed more than once, read from the store itself
-    "SELECT COUNT(*) - COUNT(DISTINCT payment_id || ':' || amount_cents || ':' || reason) "
-    "FROM billing_refunds",
+    "SELECT COUNT(*) - COUNT(DISTINCT payment_id || ':' || amount_cents) FROM billing_refunds",
     "SELECT COUNT(*) - COUNT(DISTINCT project_id || ':' || title) FROM eng_issues "
     "WHERE operation_id IS NOT NULL",
     "SELECT COUNT(*) - COUNT(DISTINCT ticket_id || ':' || body) FROM support_replies",

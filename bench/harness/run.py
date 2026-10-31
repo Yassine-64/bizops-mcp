@@ -189,7 +189,11 @@ async def main_run(args: argparse.Namespace) -> None:
     surfaces_file = out / "surfaces.json"
     surfaces = json.loads(surfaces_file.read_text()) if surfaces_file.exists() else {}
     size = args.catalogue or 0
-    surfaces[str(size)] = await surface_tokens(client, args.model, template, arms, size)
+    measured = await surface_tokens(client, args.model, template, arms, size)
+    surfaces[str(size)] = {
+        **surfaces.get(str(size), {}),
+        **measured,
+    }  # a later partial run must not erase arms
     surfaces_file.write_text(json.dumps(surfaces, indent=2))
 
     results = out / "results.jsonl"

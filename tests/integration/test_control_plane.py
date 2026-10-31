@@ -163,3 +163,14 @@ async def test_reissued_approval_supersedes_the_old_nonce(seeded: Container) -> 
     kw = {"run_id": run_id, "step_id": step_id, "tenant": "acme", "approve": True, "by": "carol"}
     assert seeded.approvals.resolve(old, **kw) is ApprovalOutcome.ALREADY_USED  # type: ignore[arg-type]
     assert seeded.approvals.resolve(again.approval.nonce, **kw) is ApprovalOutcome.APPROVED  # type: ignore[arg-type]
+
+
+async def test_a_different_reason_does_not_make_a_repeat_refund_new(seeded: Container) -> None:
+    """Found by BizOpsBench: free text in `reason` used to defeat the duplicate guard."""
+    carol = who(seeded, "acme/carol")
+    first = _refund(seeded, 10_000)
+    second = {**first, "args": {**first["args"], "reason": "second partial refund"}}  # type: ignore[dict-item]
+    assert (await seeded.executor.start(carol, [first])).run.status is RunStatus.DONE
+    again = await seeded.executor.start(carol, [second])
+    assert again.run.status is RunStatus.AWAITING_APPROVAL and again.run.steps[0].rule == "duplicate"
+    assert _refund_count(seeded) == 1
