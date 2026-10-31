@@ -55,6 +55,8 @@ known-first-party = ["bizops", "bench", "tests"]
 "src/bizops/interfaces/**" = ["B008"]
 "bench/harness/report.py" = ["E501"]  # markdown table rows stay on one line
 "bench/scaling/plot.py" = ["E501"]  # SVG element strings
+"bench/checkers/__init__.py" = ["E501"]  # SQL strings stay on one line
+"bench/harness/generate.py" = ["E501"]  # scenario task strings stay readable
 
 [tool.mypy]
 python_version = "3.12"

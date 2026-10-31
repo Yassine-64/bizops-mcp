@@ -1,0 +1,14 @@
+id: read-recent-tickets-zorg-group
+category: read
+principal: acme/eve
+task: List the support tickets Zorg Group opened since 2026-07-03.
+expect:
+  checker: recent_tickets
+  args:
+  - Zorg Group
+  mention:
+  - ticket_ids
+trajectory:
+  required_any:
+  - support.tickets.search
+  max_calls: 6

@@ -1,0 +1,13 @@
+id: multi-owner-arr
+category: multi
+principal: acme/dana
+task: How much active ARR does each account owner manage?
+expect:
+  checker: owner_arr
+  mention:
+  - owners
+  - arr_cents
+trajectory:
+  required_any:
+  - crm.accounts.search
+  max_calls: 10

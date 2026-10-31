@@ -1,0 +1,13 @@
+id: multi-churn-owners
+category: multi
+principal: acme/dana
+task: Which accounts churned last month, and which sales owners were responsible for them?
+expect:
+  checker: churn_last_month_owners
+  mention:
+  - accounts
+  - owners
+trajectory:
+  required_any:
+  - billing.mrr_changes
+  max_calls: 10

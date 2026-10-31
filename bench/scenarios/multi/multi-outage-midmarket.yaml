@@ -1,0 +1,14 @@
+id: multi-outage-midmarket
+category: multi
+principal: acme/dana
+task: Which mid-market customers filed high-priority support tickets during the week of last month's sev1 outage?
+expect:
+  checker: outage_segment_accounts
+  mention:
+  - accounts
+trajectory:
+  required:
+  - engineering.incidents.list
+  required_any:
+  - support.tickets.search
+  max_calls: 12

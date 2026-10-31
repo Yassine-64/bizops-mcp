@@ -90,5 +90,14 @@ def test_every_checker_runs(conn: sqlite3.Connection, seeded: tuple[Path, World]
         "refunds_for_payment": ("py_0001",),
         "replies_for_ticket": ("tk_0001",),
     }
+    import inspect
+
     for name, fn in CHECKERS.items():
+        required = [
+            p
+            for p in list(inspect.signature(fn).parameters.values())[1:]
+            if p.default is inspect.Parameter.empty
+        ]
+        if required and name not in sample_args:
+            continue  # parametrised checkers are exercised per scenario in tests/unit/test_scenarios.py
         assert fn(conn, *sample_args.get(name, ())) is not None

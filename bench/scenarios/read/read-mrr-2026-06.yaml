@@ -1,0 +1,14 @@
+id: read-mrr-2026-06
+category: read
+principal: acme/carol
+task: What was our MRR at the end of June 2026?
+expect:
+  checker: mrr_at
+  args:
+  - 2026-06
+  mention:
+  - mrr_cents
+trajectory:
+  required:
+  - billing.mrr_by_month
+  max_calls: 6

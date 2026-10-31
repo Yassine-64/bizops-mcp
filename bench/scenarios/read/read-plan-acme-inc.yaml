@@ -1,0 +1,15 @@
+id: read-plan-acme-inc
+category: read
+principal: acme/alice
+task: Which plan is Acme Inc on, and what is its monthly recurring revenue?
+expect:
+  checker: subscription
+  args:
+  - Acme Inc
+  mention:
+  - plan
+  - mrr_cents
+trajectory:
+  required:
+  - billing.subscription.get
+  max_calls: 6

@@ -1,0 +1,14 @@
+id: read-contacts-octan-inc
+category: read
+principal: acme/alice
+task: Who are our contacts at Octan Inc? Give their names and titles.
+expect:
+  checker: contacts
+  args:
+  - Octan Inc
+  mention:
+  - names
+trajectory:
+  required:
+  - crm.contacts.list
+  max_calls: 6

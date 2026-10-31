@@ -1,0 +1,14 @@
+id: write-deal-deal_007
+category: write
+principal: acme/alice
+task: Move the Adatum Labs expansion deal to Negotiation.
+state:
+- checker: deal_stage
+  args:
+  - deal_007
+  equals:
+    stage: Negotiation
+trajectory:
+  required:
+  - crm.deal.update_stage
+  max_calls: 6

@@ -1,0 +1,22 @@
+id: write-combo-deal_012
+category: write
+principal: acme/dana
+task: Create a P2 issue titled "SCIM deprovisioning lag" in the SSO rewrite project, and move the Massive Ltd expansion
+  deal to Proposal.
+state:
+- checker: issue_by_title
+  args:
+  - SCIM deprovisioning lag
+  equals:
+    count: 1
+    project: SSO rewrite
+- checker: deal_stage
+  args:
+  - deal_012
+  equals:
+    stage: Proposal
+trajectory:
+  required:
+  - engineering.issue.create
+  - crm.deal.update_stage
+  max_calls: 10

@@ -1,0 +1,16 @@
+id: read-unpaid-tyrell-systems
+category: read
+principal: acme/carol
+task: Which invoices of Tyrell Systems are still unpaid, and how much do they owe in total?
+expect:
+  checker: unpaid_invoices
+  args:
+  - Tyrell Systems
+  mention:
+  - invoice_ids
+  - total_cents
+trajectory:
+  required_any:
+  - billing.invoices.list
+  - billing.overdue_invoices
+  max_calls: 8

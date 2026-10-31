@@ -1,0 +1,19 @@
+id: multi-brief-rekall-group
+category: multi
+principal: acme/dana
+task: 'Give me a quick brief on Rekall Group: account owner, subscription plan, and how many support tickets they
+  opened since 2026-07-03.'
+expect:
+  checker: account_360
+  args:
+  - Rekall Group
+  mention:
+  - owner
+  - plan
+  - recent_ticket_count
+trajectory:
+  required:
+  - billing.subscription.get
+  required_any:
+  - support.tickets.search
+  max_calls: 10

@@ -1,0 +1,17 @@
+id: fail-drop-issue-session-cookie-too-large
+category: failure
+principal: acme/bob
+task: Create a P2 issue titled "Session cookie too large" in the SSO rewrite project.
+chaos:
+  profile: commit_then_drop
+  capability: engineering.issue.create
+state:
+- checker: issue_by_title
+  args:
+  - Session cookie too large
+  equals:
+    count: 1
+trajectory:
+  required:
+  - engineering.issue.create
+  max_calls: 10

@@ -1,0 +1,15 @@
+id: read-deals-dana-proposal
+category: read
+principal: acme/alice
+task: Which deals owned by dana are in the Proposal stage? Name the accounts.
+expect:
+  checker: deals_by_owner_stage
+  args:
+  - dana
+  - Proposal
+  mention:
+  - accounts
+trajectory:
+  required:
+  - crm.deals.list
+  max_calls: 6

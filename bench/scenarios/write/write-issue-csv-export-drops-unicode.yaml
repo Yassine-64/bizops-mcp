@@ -1,0 +1,16 @@
+id: write-issue-csv-export-drops-unicode
+category: write
+principal: acme/bob
+task: Create a P2 issue titled "CSV export drops unicode" in the Data export service project.
+state:
+- checker: issue_by_title
+  args:
+  - CSV export drops unicode
+  equals:
+    count: 1
+    priority: P2
+    project: Data export service
+trajectory:
+  required:
+  - engineering.issue.create
+  max_calls: 6

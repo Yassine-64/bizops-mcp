@@ -1,0 +1,21 @@
+id: fail-drop-goodwill-proseware-labs
+category: failure
+principal: acme/carol
+task: Refund $50 of Proseware Labs' most recent payment as a goodwill gesture.
+chaos:
+  profile: commit_then_drop
+  capability: billing.refund_payment
+state:
+- checker: refunds_for_payment
+  args_from:
+    checker: last_payment
+    args:
+    - Proseware Labs
+    field: payment_id
+  equals:
+    count: 1
+    total_cents: 5000
+trajectory:
+  required:
+  - billing.refund_payment
+  max_calls: 10

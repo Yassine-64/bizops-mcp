@@ -1,0 +1,19 @@
+id: multi-brief-sterling-co
+category: multi
+principal: acme/dana
+task: 'Give me a quick brief on Sterling Co: account owner, subscription plan, and how many support tickets they
+  opened since 2026-07-03.'
+expect:
+  checker: account_360
+  args:
+  - Sterling Co
+  mention:
+  - owner
+  - plan
+  - recent_ticket_count
+trajectory:
+  required:
+  - billing.subscription.get
+  required_any:
+  - support.tickets.search
+  max_calls: 10

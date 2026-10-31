@@ -1,0 +1,16 @@
+id: read-profile-hooli-holdings
+category: read
+principal: acme/alice
+task: What is Hooli Holdings' ARR and who owns the account?
+expect:
+  checker: account_profile
+  args:
+  - Hooli Holdings
+  mention:
+  - arr_cents
+  - owner
+trajectory:
+  required_any:
+  - crm.accounts.search
+  - crm.account.get
+  max_calls: 6

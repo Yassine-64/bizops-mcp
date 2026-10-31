@@ -1,0 +1,14 @@
+id: multi-most-tickets
+category: multi
+principal: acme/eve
+task: Which account opened the most support tickets in the last 90 days, and how many did it open?
+expect:
+  checker: most_tickets_90d
+  mention:
+  - account
+  - tickets
+trajectory:
+  required_any:
+  - support.tickets.search
+  - support.health.score
+  max_calls: 12
