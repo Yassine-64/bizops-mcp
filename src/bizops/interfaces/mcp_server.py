@@ -52,6 +52,43 @@ def _result(reply: ToolReply) -> t.CallToolResult:
     return t.CallToolResult(content=[t.TextContent(type="text", text=text)], is_error=reply.is_error)
 
 
+def principal_from_request(ctx: Any) -> Principal:
+    """HTTP: the principal the bearer middleware resolved for this request. The model cannot set it."""
+    principal: Principal = ctx.request.state.bizops_principal
+    return principal
+
+
+def http_app(server: Server, authenticate: Callable[[str], Principal | None]) -> Any:
+    """Streamable HTTP with bearer principals. Authentication happens before MCP: a missing or unknown token
+    is a 401 and never reaches a handler. JSON responses, stateless: approvals use the input-required retry.
+    The SDK's DNS-rebinding protection stays on, so clients must send Host with its port."""
+    from starlette.responses import JSONResponse
+
+    inner = server.streamable_http_app(json_response=True, stateless_http=True)
+
+    async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await inner(scope, receive, send)
+            return
+        headers = {k.decode().lower(): v.decode() for k, v in scope.get("headers", [])}
+        scheme, _, token = headers.get("authorization", "").partition(" ")
+        principal = authenticate(token.strip()) if scheme.lower() == "bearer" and token else None
+        if principal is None:
+            response = JSONResponse(
+                {"error": "a valid bearer token is required"},
+                status_code=401,
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            await response(scope, receive, send)
+            return
+        scope.setdefault("state", {})["bizops_principal"] = principal
+        await inner(scope, receive, send)
+
+    # the session manager's lifespan lives on the inner Starlette router; expose it to the ASGI server
+    app.router = inner.router  # type: ignore[attr-defined]
+    return app
+
+
 def build_server(surface: Surface, principal: Callable[[Any], Principal], name: str = "bizops") -> Server:
     """`principal(ctx)` resolves the caller from the transport (env for stdio, bearer token for HTTP)."""
 
@@ -100,4 +137,4 @@ def build_server(surface: Surface, principal: Callable[[Any], Principal], name: 
     return Server(name, on_list_tools=on_list_tools, on_call_tool=on_call_tool)
 
 
-__all__ = ["APPROVAL_KEY", "build_server"]
+__all__ = ["APPROVAL_KEY", "build_server", "http_app", "principal_from_request"]

@@ -48,6 +48,17 @@ class TenantDatabases:
             return None
         return principal_for(tenant, str(row["user"]), set(str(row["roles"]).split(",")))
 
+    def tenants(self) -> list[str]:
+        return sorted(p.stem for p in self.data_dir.glob("*.db") if p.stem != "journal")
+
+    def authenticate_token(self, token: str) -> Principal | None:
+        """Bearer token -> principal, whichever tenant issued it. Tokens are unique across tenants."""
+        for tenant in self.tenants():
+            principal = self.authenticate(tenant, token)
+            if principal is not None:
+                return principal
+        return None
+
     def principal(self, tenant: str, user: str) -> Principal | None:
         """Dev convenience for stdio: name the principal instead of presenting a token."""
         conn = self.connect(tenant)
