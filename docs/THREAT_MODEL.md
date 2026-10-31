@@ -20,6 +20,7 @@ messages (ticket replies); the integrity of the run journal and approvals.
 | A repeat refund disguised by different free text | duplicate guard keys on declared effect identity | #16, `test_a_different_reason_does_not_make…` |
 | Bulk extraction | per-call result cap (50 rows), no export capability | `test_result_size_is_capped` |
 | Unauthenticated HTTP access | bearer check before MCP, 401; DNS-rebinding protection on | `test_http.py` |
+| A leaked database copy yields usable tokens | tokens stored as SHA-256 only; plaintext shown once at issue | `test_tokens_are_random_hashed_rotated_and_revocable` |
 | Secrets or customer data in traces | attributes are ids and decisions only | `test_refund_with_approval_is_one_payload_free_tree` |
 
 ## Residual risks
@@ -27,6 +28,8 @@ messages (ticket replies); the integrity of the run journal and approvals.
 - The human approver is the same person as the requester over MCP; four-eyes needs `bizops approve` by a
   different operator, not enforced.
 - The model can still *say* something misleading in its answer; the control plane governs actions, not prose.
-- Bearer tokens are static and stored in the tenant database; no rotation or expiry (OAuth is out of scope).
+- Bearer tokens are random (256 bits), stored only as SHA-256, rotated by re-issuing and revoked with
+  `bizops token revoke`, but they never expire on their own and there is no audit of token use (OAuth is out
+  of scope). A fresh seed holds no credentials at all.
 - A send that times out ends `delivery_uncertain`: the customer may have received it, and a human must check.
 - The duplicate guard covers financial and destructive capabilities only, and only within one principal.

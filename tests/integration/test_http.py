@@ -21,8 +21,7 @@ BASE = "http://127.0.0.1:8765"  # a port in Host: the SDK rejects bare hosts (DN
 
 
 def _token(c: Container, tenant: str, user: str) -> str:
-    conn = sqlite3.connect(c.settings.data_dir / f"{tenant}.db")
-    return str(conn.execute("SELECT token FROM principals WHERE user = ?", (user,)).fetchone()[0])
+    return c.tenants.issue_token(tenant, user)
 
 
 def _payload(r: t.CallToolResult) -> dict[str, Any]:
@@ -95,3 +94,28 @@ async def test_roles_come_from_the_token_and_approvals_work_over_http(seeded: Co
     assert as_finance["status"] == "done"
     conn = sqlite3.connect(seeded.settings.data_dir / "acme.db")
     assert refunds_for_payment(conn, pay["payment_id"])["count"] == 1
+
+
+async def test_tokens_are_random_hashed_rotated_and_revocable(seeded: Container, app: Any) -> None:
+    first = seeded.tenants.issue_token("acme", "carol")
+    stored = (
+        sqlite3.connect(seeded.settings.data_dir / "acme.db")
+        .execute("SELECT token_hash FROM principals WHERE user = 'carol'")
+        .fetchone()[0]
+    )
+    assert first not in stored and len(first) > 40  # only a digest is stored; the token has ~256 bits
+    assert seeded.tenants.authenticate_token(first) is not None
+    second = seeded.tenants.issue_token("acme", "carol")  # rotation
+    assert second != first
+    assert seeded.tenants.authenticate_token(first) is None
+    assert seeded.tenants.authenticate_token(second) is not None
+    seeded.tenants.revoke_token("acme", "carol")
+    assert seeded.tenants.authenticate_token(second) is None
+    async with httpx2.AsyncClient(transport=httpx2.ASGITransport(app=app), base_url=BASE) as http:
+        r = await http.post("/mcp", json={}, headers={"Authorization": f"Bearer {second}"})
+        assert r.status_code == 401
+
+
+def test_a_fresh_seed_has_no_credentials(seeded: Container) -> None:
+    conn = sqlite3.connect(seeded.settings.data_dir / "acme.db")
+    assert conn.execute("SELECT COUNT(*) FROM principals WHERE token_hash IS NOT NULL").fetchone()[0] == 0

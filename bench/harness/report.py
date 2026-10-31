@@ -9,6 +9,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
+from bench.harness.pricing import PRICES_AS_OF
 from bench.harness.scenario import load_scenarios
 from bench.harness.stats import bootstrap_mean, by_family, paired_difference, percentile
 
@@ -44,7 +45,7 @@ def _size(r: Row) -> int:
 def table_a(rows: list[Row], surfaces: dict[str, int], family: Family) -> str:
     out = [
         "| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok "
-        "| Surface tok | Calls | $/task | p50 / p95 s |",
+        "| Surface tok | Calls | est. $/task | p50 / p95 s |",
         "|---|---|---|---|---|---|---|---|---|---|",
     ]
     for arm in ("static", "tool_search", "discover"):
@@ -188,7 +189,8 @@ def write_report(d: Path, scenarios: Path = Path("bench/scenarios")) -> str:
             [
                 f"# BizOpsBench report: {d.name}",
                 f"Model {', '.join(models)}; {len({r['scenario'] for r in rows})} scenarios; {repeats} repeat(s); "
-                f"{len(rows)} runs; total ${sum(r['cost_usd'] for r in rows):.2f}. Confidence intervals resample "
+                f"{len(rows)} runs; estimated cost ${sum(r['cost_usd'] for r in rows):.2f} at list prices as of "
+                f"{PRICES_AS_OF}. Confidence intervals resample "
                 f"{len(set(map(family, {r['scenario'] for r in rows})))} template families, not scenarios: "
                 "parametrised cases of one template are not independent.",
                 *per_size,

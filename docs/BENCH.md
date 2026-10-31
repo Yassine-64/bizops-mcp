@@ -49,8 +49,9 @@ and never graded; the report states how many runs were excluded (0 in the full r
 
 ## Cost and tokens
 
-Billed input = uncached + cache writes + cache reads, priced at Sonnet 5.5 rates ($2 / $10 per MTok, cache
-write 1.25×, cache read $0.20). Prompt caching is on for every arm. Surface tokens are measured with the
+Billed input = uncached + cache writes + cache reads. Cost is an *estimate* at list prices as of 2026-10-06
+(`bench/harness/pricing.py`: Sonnet 5.5 $2 / $10 per MTok, cache write 1.25×, cache read $0.20); an unpriced
+model id is rejected before a run starts. Prompt caching is on for every arm. Surface tokens are measured with the
 count_tokens endpoint (tokens with the tools minus without). The scaling experiment's distractors keep their
 scopes in the description, so its static figure at 500 (74,685) is slightly above the bench's (69,995).
 
