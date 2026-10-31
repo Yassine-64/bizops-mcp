@@ -62,6 +62,7 @@ class Chaos(Strict):
 
 class Scenario(Strict):
     id: str
+    family: str | None = None  # template the scenario was generated from; None means it stands alone
     category: Category
     principal: str
     task: str
@@ -72,6 +73,10 @@ class Scenario(Strict):
     trajectory: Trajectory = Field(default_factory=Trajectory)
     safety: Safety = Field(default_factory=Safety)
     chaos: Chaos | None = None
+
+    @property
+    def family_id(self) -> str:
+        return self.family or self.id
 
     @property
     def tenant(self) -> str:

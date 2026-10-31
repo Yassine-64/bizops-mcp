@@ -1,4 +1,5 @@
 id: read-contacts-adatum-labs
+family: read-contacts
 category: read
 principal: acme/alice
 task: Who are our contacts at Adatum Labs? Give their names and titles.

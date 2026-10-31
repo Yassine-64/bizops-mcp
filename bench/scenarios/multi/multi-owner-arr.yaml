@@ -1,4 +1,5 @@
 id: multi-owner-arr
+family: multi-owner-arr
 category: multi
 principal: acme/dana
 task: How much active ARR does each account owner manage?

@@ -1,4 +1,5 @@
 id: approve-reply-tk_0263
+family: approve-reply
 category: approval
 principal: acme/eve
 task: Reply to Roxxon Labs' latest ticket tk_0263 ("Invoice PDF wrong currency") telling them a fix is being deployed

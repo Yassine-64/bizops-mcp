@@ -1,4 +1,5 @@
 id: multi-churn-owners
+family: multi-churn-owners
 category: multi
 principal: acme/dana
 task: Which accounts churned last month, and which sales owners were responsible for them?

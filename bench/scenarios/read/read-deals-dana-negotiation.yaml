@@ -1,4 +1,5 @@
 id: read-deals-dana-negotiation
+family: read-deals
 category: read
 principal: acme/alice
 task: Which deals owned by dana are in the Negotiation stage? Name the accounts.

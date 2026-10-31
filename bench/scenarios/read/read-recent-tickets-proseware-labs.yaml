@@ -1,4 +1,5 @@
 id: read-recent-tickets-proseware-labs
+family: read-recent-tickets
 category: read
 principal: acme/eve
 task: List the support tickets Proseware Labs opened since 2026-07-03.

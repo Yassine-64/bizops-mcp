@@ -1,4 +1,5 @@
 id: read-profile-proseware-labs
+family: read-profile
 category: read
 principal: acme/alice
 task: What is Proseware Labs' ARR and who owns the account?

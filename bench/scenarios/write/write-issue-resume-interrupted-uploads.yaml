@@ -1,4 +1,5 @@
 id: write-issue-resume-interrupted-uploads
+family: write-issue
 category: write
 principal: acme/bob
 task: Create a P3 issue titled "Resume interrupted uploads" in the Mobile uploads project.

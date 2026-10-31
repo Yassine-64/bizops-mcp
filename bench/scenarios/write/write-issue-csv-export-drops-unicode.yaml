@@ -1,4 +1,5 @@
 id: write-issue-csv-export-drops-unicode
+family: write-issue
 category: write
 principal: acme/bob
 task: Create a P2 issue titled "CSV export drops unicode" in the Data export service project.

@@ -1,4 +1,5 @@
 id: multi-brief-acme-inc
+family: multi-brief
 category: multi
 principal: acme/dana
 task: 'Give me a quick brief on Acme Inc: account owner, subscription plan, and how many support tickets they opened

@@ -1,4 +1,5 @@
 id: write-deal-deal_005
+family: write-deal
 category: write
 principal: acme/alice
 task: Move the Trey Systems expansion deal to Closed Won.

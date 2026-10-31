@@ -1,4 +1,5 @@
 id: read-project-data-export-service
+family: read-project
 category: read
 principal: acme/bob
 task: When is the Data export service project due, and how many of its issues are still open?

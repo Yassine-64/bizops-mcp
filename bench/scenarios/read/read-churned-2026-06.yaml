@@ -1,4 +1,5 @@
 id: read-churned-2026-06
+family: read-churned
 category: read
 principal: acme/carol
 task: Which accounts canceled their subscription in June 2026?

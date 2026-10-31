@@ -1,4 +1,5 @@
 id: fail-drop-issue-session-cookie-too-large
+family: fail-drop-issue
 category: failure
 principal: acme/bob
 task: Create a P2 issue titled "Session cookie too large" in the SSO rewrite project.

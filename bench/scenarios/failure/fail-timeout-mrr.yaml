@@ -1,4 +1,5 @@
 id: fail-timeout-mrr
+family: fail-timeout-mrr
 category: failure
 principal: acme/carol
 task: What was our MRR at the end of August 2026?

@@ -1,6 +1,6 @@
 # BizOpsBench report: pilot
 
-Model claude-sonnet-5-5; 15 scenarios; 2 repeat(s); 90 runs; total $1.53.
+Model claude-sonnet-5-5; 15 scenarios; 2 repeat(s); 90 runs; total $1.53. Confidence intervals resample 15 template families, not scenarios: parametrised cases of one template are not independent.
 
 ## Table A at 25 capabilities: the interface (full control plane behind every surface)
 
@@ -12,11 +12,21 @@ Model claude-sonnet-5-5; 15 scenarios; 2 repeat(s); 90 runs; total $1.53.
 
 ## Paired differences at 25 capabilities
 
-| Comparison | Δ success (95% CI) | Δ billed input tokens (95% CI) | Scenarios |
+| Comparison | Δ success (95% CI) | Δ billed input tokens (95% CI) | Independent families |
 |---|---|---|---|
 | discover vs static | +0 pts (+0, +0) | -6,778 (-8,433, -5,305) | 15 |
 | discover vs tool_search | +0 pts (+0, +0) | -1,601 (-3,265, -234) | 15 |
 | tool_search vs static | +0 pts (+0, +0) | -5,177 (-7,479, -2,776) | 15 |
+
+## Success by category at 25 capabilities
+
+| Category | Scenarios | static | tool_search | discover |
+|---|---|---|---|---|
+| approval | 2 | 100% | 100% | 100% |
+| multi | 4 | 100% | 100% | 100% |
+| read | 4 | 100% | 100% | 100% |
+| security | 3 | 100% | 100% | 100% |
+| write | 2 | 100% | 100% | 100% |
 
 ## Table B: control-plane ablation (discover surface)
 

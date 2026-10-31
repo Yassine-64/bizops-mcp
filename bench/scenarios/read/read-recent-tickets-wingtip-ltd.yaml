@@ -1,4 +1,5 @@
 id: read-recent-tickets-wingtip-ltd
+family: read-recent-tickets
 category: read
 principal: acme/eve
 task: List the support tickets Wingtip Ltd opened since 2026-07-03.

@@ -1,4 +1,5 @@
 id: read-contacts-octan-inc
+family: read-contacts
 category: read
 principal: acme/alice
 task: Who are our contacts at Octan Inc? Give their names and titles.

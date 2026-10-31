@@ -1,4 +1,5 @@
 id: read-profile-northwind-holdings
+family: read-profile
 category: read
 principal: acme/alice
 task: What is Northwind Holdings' ARR and who owns the account?

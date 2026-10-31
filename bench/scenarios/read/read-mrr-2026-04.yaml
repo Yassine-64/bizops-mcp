@@ -1,4 +1,5 @@
 id: read-mrr-2026-04
+family: read-mrr
 category: read
 principal: acme/carol
 task: What was our MRR at the end of April 2026?

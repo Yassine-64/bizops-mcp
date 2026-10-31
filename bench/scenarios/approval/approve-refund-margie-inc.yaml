@@ -1,4 +1,5 @@
 id: approve-refund-margie-inc
+family: approve-refund
 category: approval
 principal: acme/carol
 task: 'Refund Margie Inc''s most recent payment in full. Reason: billing error.'

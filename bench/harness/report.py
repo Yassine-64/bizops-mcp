@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
+from collections.abc import Callable
 from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from bench.harness.stats import bootstrap_mean, by_scenario, paired_difference, percentile
+from bench.harness.scenario import load_scenarios
+from bench.harness.stats import bootstrap_mean, by_family, paired_difference, percentile
+
+Family = Callable[[str], str]
 
 Row = dict[str, Any]
 
@@ -37,7 +41,7 @@ def _size(r: Row) -> int:
     return int(r.get("catalogue", 25))
 
 
-def table_a(rows: list[Row], surfaces: dict[str, int]) -> str:
+def table_a(rows: list[Row], surfaces: dict[str, int], family: Family) -> str:
     out = [
         "| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok "
         "| Surface tok | Calls | $/task | p50 / p95 s |",
@@ -47,7 +51,9 @@ def table_a(rows: list[Row], surfaces: dict[str, int]) -> str:
         rs = [r for r in rows if r["arm"] == arm and r["config"] == "full"]
         if not rs:
             continue
-        succ, lo, hi = bootstrap_mean(list(by_scenario(rs, lambda r: float(r["task_success"])).values()))
+        succ, lo, hi = bootstrap_mean(
+            list(by_family(rs, lambda r: float(r["task_success"]), family).values())
+        )
         lat = [r["latency_ms"] / 1000 for r in rs]
         out.append(
             f"| {arm} | {_pct(succ)} ({_pct(lo)}–{_pct(hi)}) | {_pct(mean(r['trajectory_ok'] for r in rs))} "
@@ -59,18 +65,18 @@ def table_a(rows: list[Row], surfaces: dict[str, int]) -> str:
     return "\n".join(out)
 
 
-def paired(rows: list[Row]) -> str:
+def paired(rows: list[Row], family: Family) -> str:
     full = [r for r in rows if r["config"] == "full"]
     succ = {
-        a: by_scenario([r for r in full if r["arm"] == a], lambda r: float(r["task_success"]))
+        a: by_family([r for r in full if r["arm"] == a], lambda r: float(r["task_success"]), family)
         for a in ("static", "tool_search", "discover")
     }
     tok = {
-        a: by_scenario([r for r in full if r["arm"] == a], lambda r: float(r["billed_input_tokens"]))
+        a: by_family([r for r in full if r["arm"] == a], lambda r: float(r["billed_input_tokens"]), family)
         for a in ("static", "tool_search", "discover")
     }
     lines = [
-        "| Comparison | Δ success (95% CI) | Δ billed input tokens (95% CI) | Scenarios |",
+        "| Comparison | Δ success (95% CI) | Δ billed input tokens (95% CI) | Independent families |",
         "|---|---|---|---|",
     ]
     for a, b in (("static", "discover"), ("tool_search", "discover"), ("static", "tool_search")):
@@ -99,6 +105,22 @@ def per_scenario(rows: list[Row]) -> str:
             + " | ".join(f"{sum(cells[sid][a])}/{len(cells[sid][a])}" if cells[sid][a] else "–" for a in arms)
             + " |"
         )
+    return "\n".join(lines)
+
+
+def by_category(rows: list[Row]) -> str:
+    """Success per category and arm: the view that does not pretend parametrised cases are independent."""
+    full = [r for r in rows if r["config"] == "full"]
+    arms = [a for a in ("static", "tool_search", "discover") if any(r["arm"] == a for r in full)]
+    cats = sorted({r["category"] for r in full})
+    lines = ["| Category | Scenarios | " + " | ".join(arms) + " |", "|---|---|" + "---|" * len(arms)]
+    for c in cats:
+        cells = []
+        for a in arms:
+            rs = [r for r in full if r["category"] == c and r["arm"] == a]
+            cells.append(_pct(mean(r["task_success"] for r in rs)) if rs else "–")
+        n = len({r["scenario"] for r in full if r["category"] == c})
+        lines.append(f"| {c} | {n} | " + " | ".join(cells) + " |")
     return "\n".join(lines)
 
 
@@ -131,8 +153,13 @@ def gates(rows: list[Row], excluded: int) -> str:
     )
 
 
-def write_report(d: Path) -> str:
+def write_report(d: Path, scenarios: Path = Path("bench/scenarios")) -> str:
     rows, excluded = _load(d)
+    families = {s.id: s.family_id for s in load_scenarios(scenarios)} if scenarios.exists() else {}
+
+    def family(sid: str) -> str:
+        return families.get(sid, sid)
+
     raw = json.loads((d / "surfaces.json").read_text()) if (d / "surfaces.json").exists() else {}
     by_size: dict[str, dict[str, int]] = (
         raw if raw and isinstance(next(iter(raw.values())), dict) else {"0": raw}
@@ -148,9 +175,11 @@ def write_report(d: Path) -> str:
         rs = [r for r in rows if _size(r) == size]
         per_size += [
             f"## Table A at {size} capabilities: the interface (full control plane behind every surface)",
-            table_a(rs, surf(size)),
+            table_a(rs, surf(size), family),
             f"## Paired differences at {size} capabilities",
-            paired(rs),
+            paired(rs, family),
+            f"## Success by category at {size} capabilities",
+            by_category(rs),
         ]
     models = sorted({r["model"] for r in rows})
     repeats = max(r["repeat"] for r in rows) + 1
@@ -159,7 +188,9 @@ def write_report(d: Path) -> str:
             [
                 f"# BizOpsBench report: {d.name}",
                 f"Model {', '.join(models)}; {len({r['scenario'] for r in rows})} scenarios; {repeats} repeat(s); "
-                f"{len(rows)} runs; total ${sum(r['cost_usd'] for r in rows):.2f}.",
+                f"{len(rows)} runs; total ${sum(r['cost_usd'] for r in rows):.2f}. Confidence intervals resample "
+                f"{len(set(map(family, {r['scenario'] for r in rows})))} template families, not scenarios: "
+                "parametrised cases of one template are not independent.",
                 *per_size,
                 "## Table B: control-plane ablation (discover surface)",
                 table_b(rows),

@@ -77,11 +77,51 @@ def _slug(text: str) -> str:
     return "".join(ch if ch.isalnum() else "-" for ch in text.lower()).strip("-")[:28].rstrip("-")
 
 
+# templates that produce several parametrised scenarios; their cases are not independent, so the report
+# resamples by family rather than by scenario
+FAMILIES = [
+    "read-profile",
+    "read-mrr",
+    "read-unpaid",
+    "read-recent-tickets",
+    "read-plan",
+    "read-contacts",
+    "read-project",
+    "read-churned",
+    "read-deals",
+    "multi-brief",
+    "write-deal",
+    "write-issue",
+    "write-goodwill",
+    "write-combo",
+    "approve-refund",
+    "decline-refund",
+    "approve-reply",
+    "decline-reply",
+    "fail-drop-goodwill",
+    "fail-drop-issue",
+    "security-payroll",
+]
+
+
+def family_of(sid: str) -> str:
+    return next((f for f in FAMILIES if sid.startswith(f + "-")), sid)
+
+
 def build(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
 
     def add(category: str, sid: str, principal: str, task: str, **rest: Any) -> None:
-        out.append({"id": sid, "category": category, "principal": principal, "task": task, **rest})
+        out.append(
+            {
+                "id": sid,
+                "family": family_of(sid),
+                "category": category,
+                "principal": principal,
+                "task": task,
+                **rest,
+            }
+        )
 
     pay = lambda name: {"checker": "last_payment", "args": [name], "field": "payment_id"}  # noqa: E731
 

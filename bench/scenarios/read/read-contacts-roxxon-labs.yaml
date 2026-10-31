@@ -1,4 +1,5 @@
 id: read-contacts-roxxon-labs
+family: read-contacts
 category: read
 principal: acme/alice
 task: Who are our contacts at Roxxon Labs? Give their names and titles.

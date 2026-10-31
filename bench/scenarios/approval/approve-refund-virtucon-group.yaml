@@ -1,4 +1,5 @@
 id: approve-refund-virtucon-group
+family: approve-refund
 category: approval
 principal: acme/carol
 task: 'Refund Virtucon Group''s most recent payment in full. Reason: billing error.'

@@ -1,6 +1,6 @@
-"""Paired statistics over scenarios. Runs are paired by scenario id: same tasks, same seed, a different
-arm. Repeats of one scenario are averaged first, then scenarios are resampled, so a scenario with three
-repeats does not count three times."""
+"""Paired statistics. Runs are paired by scenario: same task, same seed, a different arm. Repeats are averaged
+into their scenario, and scenarios generated from one template are averaged into their family before
+resampling, because five "what is X's ARR" variants are not five independent problems."""
 
 from __future__ import annotations
 
@@ -17,6 +17,16 @@ def by_scenario(rows: Iterable[Row], value: Callable[[Row], float]) -> dict[str,
     groups: dict[str, list[float]] = defaultdict(list)
     for r in rows:
         groups[r["scenario"]].append(value(r))
+    return {k: mean(v) for k, v in groups.items()}
+
+
+def by_family(
+    rows: Iterable[Row], value: Callable[[Row], float], family: Callable[[str], str]
+) -> dict[str, float]:
+    """Average repeats into scenarios, then scenarios into their template family: the resampling unit."""
+    groups: dict[str, list[float]] = defaultdict(list)
+    for scenario, v in by_scenario(rows, value).items():
+        groups[family(scenario)].append(v)
     return {k: mean(v) for k, v in groups.items()}
 
 
@@ -43,4 +53,4 @@ def percentile(values: list[float], q: float) -> float:
     return s[min(len(s) - 1, int(round(q * (len(s) - 1))))]
 
 
-__all__ = ["bootstrap_mean", "by_scenario", "paired_difference", "percentile"]
+__all__ = ["bootstrap_mean", "by_family", "by_scenario", "paired_difference", "percentile"]

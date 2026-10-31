@@ -1,4 +1,5 @@
 id: write-deal-deal_007
+family: write-deal
 category: write
 principal: acme/alice
 task: Move the Adatum Labs expansion deal to Negotiation.
