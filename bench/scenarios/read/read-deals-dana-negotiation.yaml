@@ -1,0 +1,15 @@
+id: read-deals-dana-negotiation
+category: read
+principal: acme/alice
+task: Which deals owned by dana are in the Negotiation stage? Name the accounts.
+expect:
+  checker: deals_by_owner_stage
+  args:
+  - dana
+  - Negotiation
+  mention:
+  - accounts
+trajectory:
+  required:
+  - crm.deals.list
+  max_calls: 6

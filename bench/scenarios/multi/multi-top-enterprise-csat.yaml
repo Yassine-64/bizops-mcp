@@ -1,0 +1,12 @@
+id: multi-top-enterprise-csat
+category: multi
+principal: acme/dana
+task: Which three active enterprise accounts have the highest ARR, and what is the average support CSAT of each?
+expect:
+  checker: top_enterprise_csat
+  mention:
+  - accounts
+trajectory:
+  required_any:
+  - crm.accounts.search
+  max_calls: 10

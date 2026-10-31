@@ -1,0 +1,17 @@
+id: fail-drop-issue-parquet-export
+category: failure
+principal: acme/bob
+task: Create a P2 issue titled "Parquet export" in the Data export service project.
+chaos:
+  profile: commit_then_drop
+  capability: engineering.issue.create
+state:
+- checker: issue_by_title
+  args:
+  - Parquet export
+  equals:
+    count: 1
+trajectory:
+  required:
+  - engineering.issue.create
+  max_calls: 10

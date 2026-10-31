@@ -1,0 +1,18 @@
+id: write-goodwill-weyland-inc
+category: write
+principal: acme/carol
+task: Refund $50 of Weyland Inc's most recent payment as a goodwill gesture.
+state:
+- checker: refunds_for_payment
+  args_from:
+    checker: last_payment
+    args:
+    - Weyland Inc
+    field: payment_id
+  equals:
+    count: 1
+    total_cents: 5000
+trajectory:
+  required:
+  - billing.refund_payment
+  max_calls: 8

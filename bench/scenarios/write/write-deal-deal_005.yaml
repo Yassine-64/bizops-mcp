@@ -1,0 +1,14 @@
+id: write-deal-deal_005
+category: write
+principal: acme/alice
+task: Move the Trey Systems expansion deal to Closed Won.
+state:
+- checker: deal_stage
+  args:
+  - deal_005
+  equals:
+    stage: Closed Won
+trajectory:
+  required:
+  - crm.deal.update_stage
+  max_calls: 6

@@ -1,0 +1,16 @@
+id: write-issue-proration-rounding
+category: write
+principal: acme/bob
+task: Create a P1 issue titled "Proration rounding" in the Billing v2 migration project.
+state:
+- checker: issue_by_title
+  args:
+  - Proration rounding
+  equals:
+    count: 1
+    priority: P1
+    project: Billing v2 migration
+trajectory:
+  required:
+  - engineering.issue.create
+  max_calls: 6

@@ -1,0 +1,16 @@
+id: read-profile-northwind-holdings
+category: read
+principal: acme/alice
+task: What is Northwind Holdings' ARR and who owns the account?
+expect:
+  checker: account_profile
+  args:
+  - Northwind Holdings
+  mention:
+  - arr_cents
+  - owner
+trajectory:
+  required_any:
+  - crm.accounts.search
+  - crm.account.get
+  max_calls: 6

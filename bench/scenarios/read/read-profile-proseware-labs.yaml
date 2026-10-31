@@ -1,0 +1,16 @@
+id: read-profile-proseware-labs
+category: read
+principal: acme/alice
+task: What is Proseware Labs' ARR and who owns the account?
+expect:
+  checker: account_profile
+  args:
+  - Proseware Labs
+  mention:
+  - arr_cents
+  - owner
+trajectory:
+  required_any:
+  - crm.accounts.search
+  - crm.account.get
+  max_calls: 6

@@ -1,0 +1,17 @@
+id: fail-timeout-mrr
+category: failure
+principal: acme/carol
+task: What was our MRR at the end of August 2026?
+chaos:
+  profile: timeout_once
+  capability: billing.mrr_by_month
+expect:
+  checker: mrr_at
+  args:
+  - 2026-08
+  mention:
+  - mrr_cents
+trajectory:
+  required:
+  - billing.mrr_by_month
+  max_calls: 8

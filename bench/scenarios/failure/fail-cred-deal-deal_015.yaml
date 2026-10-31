@@ -1,0 +1,17 @@
+id: fail-cred-deal-deal_015
+category: failure
+principal: acme/alice
+task: Move the Aviato Ltd expansion deal to Negotiation.
+chaos:
+  profile: credential_expired
+  capability: crm.deal.update_stage
+state:
+- checker: deal_stage
+  args:
+  - deal_015
+  equals:
+    stage: Negotiation
+trajectory:
+  required:
+  - crm.deal.update_stage
+  max_calls: 8

@@ -1,0 +1,14 @@
+id: read-recent-tickets-proseware-labs
+category: read
+principal: acme/eve
+task: List the support tickets Proseware Labs opened since 2026-07-03.
+expect:
+  checker: recent_tickets
+  args:
+  - Proseware Labs
+  mention:
+  - ticket_ids
+trajectory:
+  required_any:
+  - support.tickets.search
+  max_calls: 6

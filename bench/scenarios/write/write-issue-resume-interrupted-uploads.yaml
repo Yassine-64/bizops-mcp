@@ -1,0 +1,16 @@
+id: write-issue-resume-interrupted-uploads
+category: write
+principal: acme/bob
+task: Create a P3 issue titled "Resume interrupted uploads" in the Mobile uploads project.
+state:
+- checker: issue_by_title
+  args:
+  - Resume interrupted uploads
+  equals:
+    count: 1
+    priority: P3
+    project: Mobile uploads
+trajectory:
+  required:
+  - engineering.issue.create
+  max_calls: 6

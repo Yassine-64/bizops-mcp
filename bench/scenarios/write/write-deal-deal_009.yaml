@@ -1,0 +1,14 @@
+id: write-deal-deal_009
+category: write
+principal: acme/alice
+task: Move the Wayne Ltd expansion deal to Closed Lost.
+state:
+- checker: deal_stage
+  args:
+  - deal_009
+  equals:
+    stage: Closed Lost
+trajectory:
+  required:
+  - crm.deal.update_stage
+  max_calls: 6

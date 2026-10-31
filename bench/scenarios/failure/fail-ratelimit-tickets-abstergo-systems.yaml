@@ -1,0 +1,17 @@
+id: fail-ratelimit-tickets-abstergo-systems
+category: failure
+principal: acme/eve
+task: List the support tickets Abstergo Systems opened since 2026-07-03.
+chaos:
+  profile: rate_limit_once
+  capability: support.tickets.search
+expect:
+  checker: recent_tickets
+  args:
+  - Abstergo Systems
+  mention:
+  - ticket_ids
+trajectory:
+  required:
+  - support.tickets.search
+  max_calls: 8

@@ -1,0 +1,22 @@
+id: write-combo-deal_013
+category: write
+principal: acme/dana
+task: Create a P2 issue titled "HEIC thumbnails missing" in the Mobile uploads project, and move the Veridian Systems
+  expansion deal to Proposal.
+state:
+- checker: issue_by_title
+  args:
+  - HEIC thumbnails missing
+  equals:
+    count: 1
+    project: Mobile uploads
+- checker: deal_stage
+  args:
+  - deal_013
+  equals:
+    stage: Proposal
+trajectory:
+  required:
+  - engineering.issue.create
+  - crm.deal.update_stage
+  max_calls: 10

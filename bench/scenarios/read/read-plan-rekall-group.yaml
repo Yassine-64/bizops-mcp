@@ -1,0 +1,15 @@
+id: read-plan-rekall-group
+category: read
+principal: acme/alice
+task: Which plan is Rekall Group on, and what is its monthly recurring revenue?
+expect:
+  checker: subscription
+  args:
+  - Rekall Group
+  mention:
+  - plan
+  - mrr_cents
+trajectory:
+  required:
+  - billing.subscription.get
+  max_calls: 6

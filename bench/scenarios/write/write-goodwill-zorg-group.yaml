@@ -1,0 +1,18 @@
+id: write-goodwill-zorg-group
+category: write
+principal: acme/carol
+task: Refund $50 of Zorg Group's most recent payment as a goodwill gesture.
+state:
+- checker: refunds_for_payment
+  args_from:
+    checker: last_payment
+    args:
+    - Zorg Group
+    field: payment_id
+  equals:
+    count: 1
+    total_cents: 5000
+trajectory:
+  required:
+  - billing.refund_payment
+  max_calls: 8

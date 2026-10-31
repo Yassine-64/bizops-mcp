@@ -1,0 +1,12 @@
+id: multi-late-project-p1s
+category: multi
+principal: acme/bob
+task: List the open P1 issues on the engineering project that is most at risk of missing its deadline.
+expect:
+  checker: late_project_p1s
+  mention:
+  - issue_ids
+trajectory:
+  required:
+  - engineering.issues.list
+  max_calls: 8

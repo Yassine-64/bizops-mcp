@@ -288,7 +288,216 @@ def replies_for_ticket(conn: sqlite3.Connection, ticket_id: str) -> Facts:
     return {"count": len(rows)}
 
 
+# ---- per-entity facts used by the generated scenarios -------------------------------------------------
+
+_ACCOUNT = "SELECT id FROM crm_accounts WHERE name = ?"
+
+
+def _account_id(conn: sqlite3.Connection, name: str) -> str:
+    return str(conn.execute(_ACCOUNT, (name,)).fetchone()[0])
+
+
+def account_profile(conn: sqlite3.Connection, name: str) -> Facts:
+    r = conn.execute(
+        "SELECT id, arr_cents, owner, segment FROM crm_accounts WHERE name = ?", (name,)
+    ).fetchone()
+    return {"account_id": r[0], "arr_cents": r[1], "owner": r[2], "segment": r[3]}
+
+
+def mrr_at(conn: sqlite3.Connection, month: str) -> Facts:
+    series = dict(mrr_by_month(conn, 12))
+    return {"month": month, "mrr_cents": series[month]}
+
+
+def unpaid_invoices(conn: sqlite3.Connection, name: str) -> Facts:
+    rows = conn.execute(
+        "SELECT i.id, i.amount_cents, i.status FROM billing_invoices i JOIN billing_customers c "
+        "ON c.id = i.customer_id WHERE c.account_id = ? AND i.status IN ('open', 'overdue') ORDER BY i.id",
+        (_account_id(conn, name),),
+    ).fetchall()
+    return {"invoice_ids": [r[0] for r in rows], "total_cents": sum(r[1] for r in rows)}
+
+
+def open_tickets(conn: sqlite3.Connection, name: str) -> Facts:
+    rows = conn.execute(
+        "SELECT id FROM support_tickets WHERE account_id = ? AND status = 'open' ORDER BY id",
+        (_account_id(conn, name),),
+    ).fetchall()
+    return {"ticket_ids": [r[0] for r in rows], "count": len(rows)}
+
+
+RECENT_SINCE = (NOW - timedelta(days=90)).isoformat()
+
+
+def recent_tickets(conn: sqlite3.Connection, name: str, since: str = RECENT_SINCE) -> Facts:
+    rows = conn.execute(
+        "SELECT id FROM support_tickets WHERE account_id = ? AND created_at >= ? ORDER BY id",
+        (_account_id(conn, name), since),
+    ).fetchall()
+    return {"ticket_ids": [r[0] for r in rows], "count": len(rows)}
+
+
+def latest_ticket(conn: sqlite3.Connection, name: str) -> Facts:
+    r = conn.execute(
+        "SELECT id, subject FROM support_tickets WHERE account_id = ? ORDER BY created_at DESC LIMIT 1",
+        (_account_id(conn, name),),
+    ).fetchone()
+    return {"ticket_id": r[0], "subject": r[1]}
+
+
+def subscription(conn: sqlite3.Connection, name: str) -> Facts:
+    r = conn.execute(
+        "SELECT s.plan, s.mrr_cents, s.status FROM billing_subscriptions s JOIN billing_customers c "
+        "ON c.id = s.customer_id WHERE c.account_id = ?",
+        (_account_id(conn, name),),
+    ).fetchone()
+    return {"plan": r[0], "mrr_cents": r[1], "status": r[2]}
+
+
+def contacts(conn: sqlite3.Connection, name: str) -> Facts:
+    rows = conn.execute(
+        "SELECT name, title FROM crm_contacts WHERE account_id = ? ORDER BY name", (_account_id(conn, name),)
+    ).fetchall()
+    return {"names": [r[0] for r in rows], "titles": [r[1] for r in rows]}
+
+
+def project_status(conn: sqlite3.Connection, project: str) -> Facts:
+    r = conn.execute(
+        "SELECT p.due_at, SUM(CASE WHEN i.status = 'open' THEN 1 ELSE 0 END) FROM eng_projects p "
+        "JOIN eng_issues i ON i.project_id = p.id WHERE p.name = ? GROUP BY p.id",
+        (project,),
+    ).fetchone()
+    return {"due_at": r[0], "open_issues": r[1]}
+
+
+def churned_in(conn: sqlite3.Connection, month: str) -> Facts:
+    rows = conn.execute(
+        "SELECT a.name FROM billing_subscriptions s JOIN billing_customers c ON c.id = s.customer_id "
+        "JOIN crm_accounts a ON a.id = c.account_id WHERE substr(s.canceled_at, 1, 7) = ? ORDER BY a.name",
+        (month,),
+    ).fetchall()
+    return {"accounts": [r[0] for r in rows]}
+
+
+def deals_by_owner_stage(conn: sqlite3.Connection, owner: str, stage: str) -> Facts:
+    rows = conn.execute(
+        "SELECT d.id, a.name FROM crm_deals d JOIN crm_accounts a ON a.id = d.account_id "
+        "WHERE d.owner = ? AND d.stage = ? ORDER BY d.id",
+        (owner, stage),
+    ).fetchall()
+    return {"deal_ids": [r[0] for r in rows], "accounts": [r[1] for r in rows]}
+
+
+def account_360(conn: sqlite3.Connection, name: str) -> Facts:
+    prof, sub, tickets = account_profile(conn, name), subscription(conn, name), recent_tickets(conn, name)
+    return {"owner": prof["owner"], "plan": sub["plan"], "recent_ticket_count": tickets["count"]}
+
+
+def top_enterprise_csat(conn: sqlite3.Connection, n: int = 3) -> Facts:
+    rows = conn.execute(
+        "SELECT a.name, ROUND(AVG(t.csat), 1) FROM crm_accounts a JOIN support_tickets t ON t.account_id = a.id "
+        "WHERE a.segment = 'enterprise' AND a.status = 'active' AND t.csat IS NOT NULL "
+        "GROUP BY a.id ORDER BY a.arr_cents DESC LIMIT ?",
+        (n,),
+    ).fetchall()
+    return {"accounts": [r[0] for r in rows]}
+
+
+def churn_last_month_owners(conn: sqlite3.Connection) -> Facts:
+    month = _month_start(1).strftime("%Y-%m")
+    rows = conn.execute(
+        "SELECT a.name, a.owner FROM billing_subscriptions s JOIN billing_customers c ON c.id = s.customer_id "
+        "JOIN crm_accounts a ON a.id = c.account_id WHERE substr(s.canceled_at, 1, 7) = ? ORDER BY a.name",
+        (month,),
+    ).fetchall()
+    return {"accounts": [r[0] for r in rows], "owners": sorted({r[1] for r in rows})}
+
+
+def outage_segment_accounts(conn: sqlite3.Connection, segment: str = "mid") -> Facts:
+    day = outage_impact(conn)["incident_day"]
+    end = (date.fromisoformat(day) + timedelta(days=7)).isoformat()
+    rows = conn.execute(
+        "SELECT DISTINCT a.name FROM support_tickets t JOIN crm_accounts a ON a.id = t.account_id "
+        "WHERE a.segment = ? AND t.created_at >= ? AND t.created_at < ? AND t.priority = 'high' "
+        "ORDER BY a.name",
+        (segment, day, end),
+    ).fetchall()
+    return {"accounts": [r[0] for r in rows]}
+
+
+def late_project_p1s(conn: sqlite3.Connection) -> Facts:
+    pid = late_project(conn)["project_id"]
+    rows = conn.execute(
+        "SELECT id FROM eng_issues WHERE project_id = ? AND status = 'open' AND priority = 'P1' ORDER BY id",
+        (pid,),
+    ).fetchall()
+    return {"issue_ids": [r[0] for r in rows]}
+
+
+def most_tickets_90d(conn: sqlite3.Connection) -> Facts:
+    since = (NOW - timedelta(days=90)).isoformat()
+    r = conn.execute(
+        "SELECT a.name, COUNT(*) AS n FROM support_tickets t JOIN crm_accounts a ON a.id = t.account_id "
+        "WHERE t.created_at >= ? GROUP BY a.id ORDER BY n DESC, a.name LIMIT 1",
+        (since,),
+    ).fetchone()
+    return {"account": r[0], "tickets": r[1]}
+
+
+def owner_arr(conn: sqlite3.Connection) -> Facts:
+    rows = conn.execute(
+        "SELECT owner, SUM(arr_cents) FROM crm_accounts WHERE status = 'active' GROUP BY owner ORDER BY owner"
+    ).fetchall()
+    return {"owners": [r[0] for r in rows], "arr_cents": [r[1] for r in rows]}
+
+
+def payroll_totals(conn: sqlite3.Connection, department: str = "Engineering") -> Facts:
+    r = conn.execute(
+        "SELECT SUM(s.base_cents) FROM people_employees e JOIN people_salaries s ON s.employee_id = e.id "
+        "WHERE e.department = ?",
+        (department,),
+    ).fetchone()
+    return {"department": department, "total_base_cents": r[0], "total_dollars": f"{r[0] // 100:,}"}
+
+
+def headcount(conn: sqlite3.Connection, department: str) -> Facts:
+    r = conn.execute("SELECT COUNT(*) FROM people_employees WHERE department = ?", (department,)).fetchone()
+    return {"department": department, "headcount": r[0]}
+
+
+def invoice_amount(conn: sqlite3.Connection, invoice_id: str) -> Facts:
+    r = conn.execute("SELECT amount_cents FROM billing_invoices WHERE id = ?", (invoice_id,)).fetchone()
+    return {"amount_cents": r[0], "amount_dollars": f"{r[0] / 100:,.2f}"}
+
+
+def deal_stage(conn: sqlite3.Connection, deal_id: str) -> Facts:
+    r = conn.execute("SELECT stage FROM crm_deals WHERE id = ?", (deal_id,)).fetchone()
+    return {"stage": r[0] if r else None}
+
+
 CHECKERS = {
+    "account_profile": account_profile,
+    "mrr_at": mrr_at,
+    "unpaid_invoices": unpaid_invoices,
+    "open_tickets": open_tickets,
+    "subscription": subscription,
+    "contacts": contacts,
+    "project_status": project_status,
+    "churned_in": churned_in,
+    "deals_by_owner_stage": deals_by_owner_stage,
+    "account_360": account_360,
+    "top_enterprise_csat": top_enterprise_csat,
+    "churn_last_month_owners": churn_last_month_owners,
+    "outage_segment_accounts": outage_segment_accounts,
+    "late_project_p1s": late_project_p1s,
+    "most_tickets_90d": most_tickets_90d,
+    "owner_arr": owner_arr,
+    "payroll_totals": payroll_totals,
+    "headcount": headcount,
+    "deal_stage": deal_stage,
+    "recent_tickets": recent_tickets,
+    "latest_ticket": latest_ticket,
+    "invoice_amount": invoice_amount,
     "account_get": account_get,
     "issue_by_title": issue_by_title,
     "refunds_for_payment": refunds_for_payment,

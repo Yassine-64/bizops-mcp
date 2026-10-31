@@ -1,0 +1,14 @@
+id: read-contacts-adatum-labs
+category: read
+principal: acme/alice
+task: Who are our contacts at Adatum Labs? Give their names and titles.
+expect:
+  checker: contacts
+  args:
+  - Adatum Labs
+  mention:
+  - names
+trajectory:
+  required:
+  - crm.contacts.list
+  max_calls: 6

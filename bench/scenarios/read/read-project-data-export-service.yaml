@@ -1,0 +1,16 @@
+id: read-project-data-export-service
+category: read
+principal: acme/bob
+task: When is the Data export service project due, and how many of its issues are still open?
+expect:
+  checker: project_status
+  args:
+  - Data export service
+  mention:
+  - due_at
+  - open_issues
+trajectory:
+  required_any:
+  - engineering.projects.list
+  - engineering.project.risk
+  max_calls: 6

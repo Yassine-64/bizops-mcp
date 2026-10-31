@@ -1,0 +1,16 @@
+id: write-issue-saml-metadata-refresh-fails
+category: write
+principal: acme/bob
+task: Create a P2 issue titled "SAML metadata refresh fails" in the SSO rewrite project.
+state:
+- checker: issue_by_title
+  args:
+  - SAML metadata refresh fails
+  equals:
+    count: 1
+    priority: P2
+    project: SSO rewrite
+trajectory:
+  required:
+  - engineering.issue.create
+  max_calls: 6

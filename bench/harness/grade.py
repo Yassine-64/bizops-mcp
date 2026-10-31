@@ -78,6 +78,12 @@ def _mentioned(answer: str, value: str) -> bool:
     v = _norm(value)
     if v in a:
         return True
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):  # ISO date in the facts, any common format in the answer
+        from datetime import date
+
+        d = date.fromisoformat(value)
+        forms = [d.strftime("%B %-d"), d.strftime("%b %-d"), d.strftime("%-d %B"), d.strftime("%m/%d/%Y")]
+        return any(_norm(f) in a for f in forms)
     if v.lstrip("-").isdigit():  # cents in the facts, dollars in the answer: accept either
         n = abs(int(v))
         return any(_norm(f"{x}") in a for x in (n, n / 100, f"{n / 100:.2f}", f"{n / 100:.0f}"))

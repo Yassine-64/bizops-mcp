@@ -1,0 +1,16 @@
+id: read-profile-initech-ltd
+category: read
+principal: acme/alice
+task: What is Initech Ltd's ARR and who owns the account?
+expect:
+  checker: account_profile
+  args:
+  - Initech Ltd
+  mention:
+  - arr_cents
+  - owner
+trajectory:
+  required_any:
+  - crm.accounts.search
+  - crm.account.get
+  max_calls: 6

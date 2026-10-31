@@ -1,0 +1,14 @@
+id: read-churned-2026-07
+category: read
+principal: acme/carol
+task: Which accounts canceled their subscription in July 2026?
+expect:
+  checker: churned_in
+  args:
+  - 2026-07
+  mention:
+  - accounts
+trajectory:
+  required_any:
+  - billing.mrr_changes
+  max_calls: 6
