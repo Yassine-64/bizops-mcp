@@ -13,6 +13,7 @@ from bizops.application.catalogue import Registry
 from bizops.application.discovery import CapabilityIndex
 from bizops.application.execution.executor import Executor, RunNotFound
 from bizops.application.surfaces import ExecutorSurface, ToolReply, ToolSpec
+from bizops.application.telemetry import span
 from bizops.domain.models import Principal
 from bizops.domain.models.capability import PolicyGates
 from bizops.domain.services.signature import discover_entry
@@ -89,7 +90,9 @@ class DiscoverSurface(ExecutorSurface):
         if tool == "discover":
             query = str(args.get("query") or "")
             limit = max(1, min(int(args.get("limit") or self.limit), 20))
-            hits = self.index.search(query, limit)
+            with span("bizops.discover", limit=limit, catalogue=len(self.index.caps)) as s:
+                hits = self.index.search(query, limit)
+                s.set_attributes({"bizops.hits": len(hits), "bizops.top": hits[0][0].name if hits else ""})
             if not hits:
                 return ToolReply({"query": query, "capabilities": [], "hint": "rephrase with business terms"})
             return ToolReply(

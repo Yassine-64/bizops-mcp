@@ -180,6 +180,11 @@ async def main_run(args: argparse.Namespace) -> None:
         scenarios = [s for s in scenarios if s.category in set(args.categories.split(","))]
     arms: list[Arm] = [a for a in args.arms.split(",")]  # type: ignore[misc]
     out = Path(args.out)
+    if args.trace:
+        from bizops.infrastructure.telemetry import configure_tracing
+
+        out.mkdir(parents=True, exist_ok=True)
+        configure_tracing(out, service="bizopsbench")
     work = out / ".work"
     template = _template(work, args.seed)
     out.mkdir(parents=True, exist_ok=True)
@@ -233,6 +238,10 @@ async def main_run(args: argparse.Namespace) -> None:
 
     await asyncio.gather(*(job(*j) for j in jobs))
     sink.close()
+    if args.trace:
+        from opentelemetry import trace
+
+        trace.get_tracer_provider().force_flush()  # type: ignore[attr-defined]
     print(f"{len(jobs)} runs in {time.time() - started:.0f}s -> {out / 'results.jsonl'}")
 
 
@@ -253,6 +262,7 @@ def main() -> None:
     )
     r.add_argument("--out", default="bench/results/pilot")
     r.add_argument("--catalogue", type=int, default=0, help="pad the catalogue with distractors to this size")
+    r.add_argument("--trace", action="store_true", help="write spans to <out>/traces.jsonl (or OTLP)")
     p = sub.add_parser("report")
     p.add_argument("dir")
     args = ap.parse_args()

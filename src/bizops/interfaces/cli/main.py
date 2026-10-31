@@ -26,5 +26,6 @@ def version() -> None:
 app.command("seed")(seed_cmd.seed)
 app.command("serve")(serve_cmd.serve)
 app.command("approve")(serve_cmd.approve)
+app.command("replay")(serve_cmd.replay)
 
 __all__ = ["app"]

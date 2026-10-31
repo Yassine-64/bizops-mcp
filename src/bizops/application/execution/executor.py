@@ -18,6 +18,7 @@ from typing import Any
 
 from bizops.application.approvals import Approvals, IssuedApproval
 from bizops.application.execution.dispatch import Dispatcher
+from bizops.application.telemetry import annotate, event, span
 from bizops.domain.exceptions import ConnectorError, CredentialExpired
 from bizops.domain.models import Principal, Risk
 from bizops.domain.models.capability import Capability, Decision, Effect
@@ -107,10 +108,27 @@ class Executor:
                 raise InvalidPlan(f"step {i}: args must be an object")
             run.steps.append(Step(f"{run_id}_s{i}", run_id, i, raw["capability"], args))
         self.journal.create_run(run)
-        return await self._advance(principal, run)
+        with span(
+            "bizops.run", run_id=run_id, tenant=run.tenant, user=run.user, steps=len(run.steps), entry="start"
+        ):
+            return await self._traced_advance(principal, run)
 
     async def resume(self, principal: Principal, run_id: str) -> RunView:
-        return await self._advance(principal, self._owned(principal, run_id))
+        run = self._owned(principal, run_id)
+        with span(
+            "bizops.run",
+            run_id=run_id,
+            tenant=run.tenant,
+            user=run.user,
+            steps=len(run.steps),
+            entry="resume",
+        ):
+            return await self._traced_advance(principal, run)
+
+    async def _traced_advance(self, principal: Principal, run: Run) -> RunView:
+        view = await self._advance(principal, run)
+        annotate(status=str(view.run.status), awaiting_approval=view.approval is not None)
+        return view
 
     def inspect(self, principal: Principal, run_id: str) -> RunView:
         """Read-only: never dispatches, never issues or resolves approvals."""
@@ -130,20 +148,36 @@ class Executor:
                 continue
             if step.status.terminal:  # declined, denied, failed, uncertain: nothing after it may run
                 return self._finish(run, RunStatus.FAILED)
-            if step.status is StepStatus.AWAITING_APPROVAL:
-                return self._pause(run, step)
-            if step.status is StepStatus.PENDING:
-                decision = self._decide(principal, step)
-                step.decision, step.reason, step.rule = decision.effect, decision.reason, decision.rule
-                if decision.effect is Effect.DENY:
-                    return self._stop(run, step, StepStatus.DENIED)
-                if decision.effect is Effect.APPROVE:
-                    step.status = StepStatus.AWAITING_APPROVAL
-                    self.journal.save_step(step)
-                    return self._pause(run, step)
-            if not await self._dispatch(principal, run, step):
-                return self._finish(run, RunStatus.FAILED)
+            with span("bizops.step", run_id=run.id, seq=step.seq, capability=step.capability) as s:
+                stopped = await self._advance_step(principal, run, step)
+                s.set_attributes(
+                    {
+                        "bizops.status": str(step.status),
+                        "bizops.decision": step.decision or "",
+                        "bizops.rule": step.rule or "",
+                        "bizops.attempts": step.attempts,
+                    }
+                )
+            if stopped is not None:
+                return stopped
         return self._finish(run, RunStatus.DONE)
+
+    async def _advance_step(self, principal: Principal, run: Run, step: Step) -> RunView | None:
+        """Decide, pause or dispatch one step. Returns a view when the run stops here, None to continue."""
+        if step.status is StepStatus.AWAITING_APPROVAL:
+            return self._pause(run, step)
+        if step.status is StepStatus.PENDING:
+            decision = self._decide(principal, step)
+            step.decision, step.reason, step.rule = decision.effect, decision.reason, decision.rule
+            if decision.effect is Effect.DENY:
+                return self._stop(run, step, StepStatus.DENIED)
+            if decision.effect is Effect.APPROVE:
+                step.status = StepStatus.AWAITING_APPROVAL
+                self.journal.save_step(step)
+                return self._pause(run, step)
+        if not await self._dispatch(principal, run, step):
+            return self._finish(run, RunStatus.FAILED)
+        return None
 
     def _decide(self, principal: Principal, step: Step) -> Decision:
         decision = self.dispatcher.decide(principal, step.capability, step.args)
@@ -186,6 +220,7 @@ class Executor:
                     principal, step.capability, step.args, step.operation_id, decision
                 )
             except CredentialExpired as e:
+                event("credential_refresh", attempt=step.attempts, final=refreshed)
                 if refreshed:
                     return self._fail(step, e)
                 refreshed = True  # ponytail: the connector refreshes on its next call; no token store here
@@ -197,9 +232,9 @@ class Executor:
                     return self._fail(step, e)
                 if cap.is_write and self.durable and not self._may_redispatch(cap):
                     return self._uncertain(step, cap, e)
-                await self.sleep(
-                    min(self.retry.backoff_s * 2 ** (step.attempts - 1), self.retry.max_backoff_s)
-                )
+                delay = min(self.retry.backoff_s * 2 ** (step.attempts - 1), self.retry.max_backoff_s)
+                event("retry", error=type(e).__name__, attempt=step.attempts, delay_s=delay)
+                await self.sleep(delay)
                 continue
             step.status, step.result, step.ms, step.error = StepStatus.DONE, result.output, result.ms, None
             self.journal.save_step(step)
