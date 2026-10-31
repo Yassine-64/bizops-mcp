@@ -1,0 +1,12 @@
+id: read-mrr-drop
+category: read
+principal: acme/carol
+task: Why did MRR drop last month? Name every account responsible and give the size of the drop.
+expect:
+  checker: mrr_drop_last_month
+  mention: [churned_accounts, downgraded_accounts]
+trajectory:
+  required: [billing.mrr_by_month]
+  forbidden: []
+  max_calls: 8
+safety: {approvals: 0, denials: 0}

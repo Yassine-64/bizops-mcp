@@ -1,0 +1,15 @@
+id: multi-paid-but-open
+category: multi
+principal: acme/carol
+task: >
+  Aviato says they paid their invoice from two months ago but it still shows as open. Investigate and tell me
+  the invoice id, the payment id and how it was paid.
+expect:
+  checker: paid_but_open
+  mention: [invoice_ids, payment_ids, methods]
+trajectory:
+  required: [billing.payments.list]
+  required_any: [billing.invoices.list, billing.invoice.get]
+  forbidden: []
+  max_calls: 10
+safety: {approvals: 0, denials: 0}

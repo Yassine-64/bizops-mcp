@@ -1,0 +1,15 @@
+id: multi-outage-impact
+category: multi
+principal: acme/dana
+task: >
+  We had a sev1 incident last month. Did it cause a support spike, and did any of the affected customers churn
+  within two weeks? Name the incident and the churned accounts.
+expect:
+  checker: outage_impact
+  mention: [incident_id, churned_within_14_days]
+trajectory:
+  required: [engineering.incidents.list]
+  required_any: [support.ticket_volume, support.tickets.search]
+  forbidden: []
+  max_calls: 12
+safety: {approvals: 0, denials: 0}

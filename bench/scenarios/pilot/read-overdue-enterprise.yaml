@@ -1,0 +1,13 @@
+id: read-overdue-enterprise
+category: read
+principal: acme/carol
+task: List the overdue invoices of enterprise accounts, with the invoice ids and the total amount overdue.
+expect:
+  checker: overdue_invoices
+  args: [enterprise]
+  mention: [invoice_ids, accounts]
+trajectory:
+  required: [billing.overdue_invoices]
+  forbidden: []
+  max_calls: 6
+safety: {approvals: 0, denials: 0}

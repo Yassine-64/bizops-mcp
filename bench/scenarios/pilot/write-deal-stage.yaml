@@ -1,0 +1,11 @@
+id: write-deal-stage
+category: write
+principal: acme/alice
+task: Move the Vandelay expansion deal to the Negotiation stage.
+state:
+  - {checker: account_deal, args: [Vandelay Ltd], equals: {stage: Negotiation}}
+trajectory:
+  required: [crm.deal.update_stage]
+  forbidden: []
+  max_calls: 6
+safety: {approvals: 0, denials: 0}

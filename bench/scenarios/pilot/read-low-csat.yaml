@@ -1,0 +1,12 @@
+id: read-low-csat
+category: read
+principal: acme/alice
+task: Which active accounts have an average support CSAT below 3? List them with their ARR.
+expect:
+  checker: top_accounts_low_csat
+  mention: [accounts]
+trajectory:
+  required_any: [support.health.score, support.tickets.search, crm.accounts.search]
+  forbidden: []
+  max_calls: 10
+safety: {approvals: 0, denials: 0}

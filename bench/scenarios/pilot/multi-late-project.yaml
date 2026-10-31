@@ -1,0 +1,13 @@
+id: multi-late-project
+category: multi
+principal: acme/bob
+task: Which engineering project is most likely to miss its deadline, and why? Give the open P1 count.
+expect:
+  checker: late_project
+  mention: [project, open_p1]
+trajectory:
+  required: [engineering.projects.list]
+  required_any: [engineering.project.risk, engineering.issues.list]
+  forbidden: []
+  max_calls: 10
+safety: {approvals: 0, denials: 0}
