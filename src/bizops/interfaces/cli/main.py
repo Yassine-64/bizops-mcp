@@ -5,6 +5,7 @@ from __future__ import annotations
 import typer
 
 from bizops.interfaces.cli.commands import seed as seed_cmd
+from bizops.interfaces.cli.commands import serve as serve_cmd
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="An evaluated control plane for agents.")
 
@@ -23,5 +24,7 @@ def version() -> None:
 
 
 app.command("seed")(seed_cmd.seed)
+app.command("serve")(serve_cmd.serve)
+app.command("approve")(serve_cmd.approve)
 
 __all__ = ["app"]

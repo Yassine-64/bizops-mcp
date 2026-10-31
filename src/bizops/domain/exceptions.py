@@ -21,6 +21,9 @@ class RateLimited(ConnectorError):
 
 
 class Timeout(ConnectorError):
+    """No response in time. The write may or may not have committed: the caller cannot tell, which is the
+    whole reason operation identity exists."""
+
     retryable = True
 
 
@@ -32,10 +35,6 @@ class Unavailable(ConnectorError):
     retryable = True
 
 
-class ConflictAfterWrite(ConnectorError):
-    """The connector committed but the response was lost. Only resolvable through the operation_id."""
-
-
 class NotFound(ConnectorError):
     pass
 
@@ -45,7 +44,6 @@ class InvalidArgument(ConnectorError):
 
 
 __all__ = [
-    "ConflictAfterWrite",
     "ConnectorError",
     "CredentialExpired",
     "InvalidArgument",

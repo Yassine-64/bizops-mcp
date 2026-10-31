@@ -8,12 +8,12 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, Field
 
-Surface = Literal["static", "tool_search", "discover"]
+SurfaceName = Literal["static", "tool_search", "discover"]
 
 
 class ControlPlaneConfig(BaseModel):
     name: str = "full"
-    surface: Surface = "discover"
+    surface: SurfaceName = "discover"
     approvals: bool = Field(default=True, description="risk gates pause for a human; off = scopes only")
     journal: bool = Field(default=True, description="durable steps with server-owned operation identity")
     discover_limit: int = 8
@@ -26,4 +26,4 @@ class ControlPlaneConfig(BaseModel):
         return cls.model_validate(yaml.safe_load(Path(path).read_text()) or {})
 
 
-__all__ = ["ControlPlaneConfig", "Surface"]
+__all__ = ["ControlPlaneConfig", "SurfaceName"]
