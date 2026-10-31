@@ -31,7 +31,7 @@ from bizops.domain.models.capability import Capability, PolicyGates
 from bizops.domain.services.signature import compact_signature, tool_name
 from bizops.infrastructure.connectors import build_registry
 
-SIZES = [25, 50, 100, 250, 500, 1000]
+SIZES = [27, 50, 100, 250, 500, 1000]
 GATES = PolicyGates()
 
 
