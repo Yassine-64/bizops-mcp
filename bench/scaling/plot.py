@@ -56,7 +56,7 @@ def svg(rows: list[dict[str, float]], theme: str) -> str:
         f'<text x="{L}" y="30" font-size="16" font-weight="600" fill="{c["ink"]}">'
         "Tool-surface tokens in every request, by catalogue size</text>",
         f'<text x="{L}" y="48" font-size="12" fill="{c["ink2"]}">'
-        "Measured with the count_tokens endpoint, claude-sonnet-5-5. 25 real capabilities plus "
+        "Measured with the count_tokens endpoint, claude-sonnet-5-5. 27 real capabilities plus "
         "near-miss distractors.</text>",
     ]
     step = 25_000

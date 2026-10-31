@@ -1,68 +1,68 @@
 [
   {
-    "size": 25,
-    "static_tokens": 4229,
+    "size": 27,
+    "static_tokens": 4563,
     "tool_search_tokens": 643,
     "discover_tokens": 897,
-    "recall@8": 1.0,
-    "recall@3": 0.923,
+    "recall@8": 0.989,
+    "recall@3": 0.978,
     "signature_complete": 1.0,
-    "search_ms_p50": 0.073,
-    "queries": 13
+    "search_ms_p50": 0.058,
+    "queries": 92
   },
   {
     "size": 50,
-    "static_tokens": 8029,
+    "static_tokens": 8051,
     "tool_search_tokens": 643,
     "discover_tokens": 897,
-    "recall@8": 1.0,
-    "recall@3": 0.923,
+    "recall@8": 0.989,
+    "recall@3": 0.978,
     "signature_complete": 1.0,
-    "search_ms_p50": 0.103,
-    "queries": 13
+    "search_ms_p50": 0.074,
+    "queries": 92
   },
   {
     "size": 100,
-    "static_tokens": 15360,
+    "static_tokens": 15438,
     "tool_search_tokens": 643,
     "discover_tokens": 897,
-    "recall@8": 0.923,
-    "recall@3": 0.923,
+    "recall@8": 0.978,
+    "recall@3": 0.935,
     "signature_complete": 1.0,
-    "search_ms_p50": 0.165,
-    "queries": 13
+    "search_ms_p50": 0.096,
+    "queries": 92
   },
   {
     "size": 250,
-    "static_tokens": 37533,
+    "static_tokens": 37608,
     "tool_search_tokens": 643,
     "discover_tokens": 897,
-    "recall@8": 0.923,
-    "recall@3": 0.923,
+    "recall@8": 0.935,
+    "recall@3": 0.935,
     "signature_complete": 1.0,
-    "search_ms_p50": 0.321,
-    "queries": 13
+    "search_ms_p50": 0.191,
+    "queries": 92
   },
   {
     "size": 500,
-    "static_tokens": 74617,
+    "static_tokens": 74685,
     "tool_search_tokens": 643,
     "discover_tokens": 897,
-    "recall@8": 0.923,
-    "recall@3": 0.923,
+    "recall@8": 0.935,
+    "recall@3": 0.826,
     "signature_complete": 1.0,
-    "search_ms_p50": 0.483,
-    "queries": 13
+    "search_ms_p50": 0.29,
+    "queries": 92
   },
   {
-    "size": 971,
-    "static_tokens": 144545,
+    "size": 973,
+    "static_tokens": 144879,
     "tool_search_tokens": 643,
     "discover_tokens": 897,
-    "recall@8": 0.923,
-    "recall@3": 0.923,
+    "recall@8": 0.935,
+    "recall@3": 0.826,
     "signature_complete": 1.0,
-    "search_ms_p50": 0.706,
-    "queries": 13
+    "search_ms_p50": 0.484,
+    "queries": 92
   }
 ]
