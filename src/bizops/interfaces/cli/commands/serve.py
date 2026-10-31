@@ -8,8 +8,8 @@ import anyio
 import typer
 
 from bizops.application.config import ControlPlaneConfig
-from bizops.infrastructure.config.settings import Settings
-from bizops.infrastructure.di.container import build_container
+from bizops.infrastructure.container import build_container
+from bizops.infrastructure.settings import Settings
 
 
 def serve(
@@ -19,7 +19,7 @@ def serve(
     """Serve the control plane to an MCP client over stdio."""
     from mcp.server.stdio import stdio_server
 
-    from bizops.interfaces.mcp.server import build_server
+    from bizops.interfaces.mcp_server import build_server
 
     settings = Settings()
     config = ControlPlaneConfig.load(settings.config_path).model_copy(update={"surface": surface})
@@ -68,7 +68,7 @@ def replay(run_id: str = typer.Argument(..., help="a recorded run")) -> None:
     from pathlib import Path
 
     from bizops.application.replay import Replayer
-    from bizops.infrastructure.journal.sqlite import SqliteJournal
+    from bizops.infrastructure.journal import SqliteJournal
 
     container = build_container()
     scratch = Path(tempfile.mkdtemp()) / "replay.db"

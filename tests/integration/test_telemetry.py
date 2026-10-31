@@ -14,7 +14,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 
 from bench.checkers import last_payment
 from bizops.application.execution.executor import Executor
-from bizops.infrastructure.di.container import Container
+from bizops.infrastructure.container import Container
 from tests.conftest import who
 
 pytestmark = pytest.mark.integration

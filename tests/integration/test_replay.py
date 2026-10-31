@@ -11,8 +11,8 @@ import pytest
 from bench.checkers import last_payment
 from bizops.application.replay import Replayer
 from bizops.domain.models.capability import PolicyGates
-from bizops.infrastructure.di.container import Container
-from bizops.infrastructure.journal.sqlite import SqliteJournal
+from bizops.infrastructure.container import Container
+from bizops.infrastructure.journal import SqliteJournal
 from tests.conftest import who
 
 pytestmark = pytest.mark.integration

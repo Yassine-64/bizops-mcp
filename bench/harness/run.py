@@ -23,9 +23,9 @@ from bench.harness.grade import grade
 from bench.harness.scenario import Scenario, load_scenarios
 from bench.scaling.distractors import with_distractors
 from bizops.application.config import ControlPlaneConfig
-from bizops.infrastructure.config.settings import Settings
-from bizops.infrastructure.di.container import build_container
+from bizops.infrastructure.container import build_container
 from bizops.infrastructure.seed import seed_tenant
+from bizops.infrastructure.settings import Settings
 
 PRICES = {  # $/MTok: input, output, cache write (1.25x input), cache read
     "claude-sonnet-5-5": (2.0, 10.0, 2.5, 0.20),
@@ -97,7 +97,7 @@ async def run_one(
     data = work / uuid.uuid4().hex[:10]
     shutil.copytree(template, data)
     try:
-        settings = Settings(_env_file=None, data_dir=data, llm="anthropic", model=model)  # type: ignore[call-arg]
+        settings = Settings(_env_file=None, data_dir=data, model=model)  # type: ignore[call-arg]
         surface_name = "discover" if arm == "discover" else "static"
         container = build_container(settings, config.model_copy(update={"surface": surface_name}))
         if catalogue:
@@ -152,9 +152,7 @@ async def surface_tokens(
     """Serialized tool-surface size as the API counts it: tokens with the tools minus tokens without."""
     data = template.parent / "surface-probe"
     shutil.copytree(template, data, dirs_exist_ok=True)
-    container = build_container(
-        Settings(_env_file=None, data_dir=data, llm="anthropic"), ControlPlaneConfig()
-    )  # type: ignore[call-arg]
+    container = build_container(Settings(_env_file=None, data_dir=data), ControlPlaneConfig())  # type: ignore[call-arg]
     if catalogue:
         container = container.with_registry(with_distractors(container.registry, catalogue))
     msg = [{"role": "user", "content": "hello"}]

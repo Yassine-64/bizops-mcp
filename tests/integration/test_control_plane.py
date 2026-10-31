@@ -11,7 +11,7 @@ from bench.checkers import last_payment, refunds_for_payment
 from bizops.application.approvals import Approvals
 from bizops.application.execution.executor import Executor
 from bizops.domain.models.run import ApprovalOutcome, RunStatus, StepStatus
-from bizops.infrastructure.di.container import Container
+from bizops.infrastructure.container import Container
 from tests.conftest import who
 
 pytestmark = pytest.mark.integration

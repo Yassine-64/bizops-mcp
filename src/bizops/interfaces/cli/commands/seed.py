@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import typer
 
-from bizops.infrastructure.config.settings import Settings
 from bizops.infrastructure.seed import content_hash, seed_tenant
+from bizops.infrastructure.settings import Settings
 
 
 def seed(

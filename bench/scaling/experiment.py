@@ -80,7 +80,7 @@ async def count(client: Any, model: str, tools: list[dict[str, Any]] | None) -> 
 async def run(out: Path, model: str, scenarios: Path, k: int) -> list[dict[str, Any]]:
     from anthropic import AsyncAnthropic
 
-    from bizops.infrastructure.config.settings import Settings
+    from bizops.infrastructure.settings import Settings
 
     client = AsyncAnthropic(api_key=Settings().anthropic_api_key)
     qs = queries(scenarios)

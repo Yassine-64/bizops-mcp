@@ -15,9 +15,9 @@ from bizops.application.execution.dispatch import Dispatcher
 from bizops.application.execution.executor import Executor
 from bizops.application.surfaces import Surface
 from bizops.domain.models.capability import PolicyGates
-from bizops.infrastructure.config.settings import Settings
 from bizops.infrastructure.db.tenants import TenantDatabases
-from bizops.infrastructure.journal.sqlite import SqliteJournal
+from bizops.infrastructure.journal import SqliteJournal
+from bizops.infrastructure.settings import Settings
 
 log = logging.getLogger(__name__)
 
