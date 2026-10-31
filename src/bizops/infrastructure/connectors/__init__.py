@@ -6,6 +6,7 @@ from bizops.application.catalogue import Registry
 from bizops.infrastructure.connectors.billing.connector import BillingConnector
 from bizops.infrastructure.connectors.crm.connector import CrmConnector
 from bizops.infrastructure.connectors.engineering.connector import EngineeringConnector
+from bizops.infrastructure.connectors.people.connector import PeopleConnector
 from bizops.infrastructure.connectors.support.connector import SupportConnector
 from bizops.infrastructure.connectors.usage.connector import UsageConnector
 
@@ -15,6 +16,7 @@ CONNECTORS: dict[str, object] = {
     "support": SupportConnector(),
     "usage": UsageConnector(),
     "engineering": EngineeringConnector(),
+    "people": PeopleConnector(),
 }
 
 
