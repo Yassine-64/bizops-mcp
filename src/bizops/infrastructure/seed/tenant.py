@@ -21,7 +21,7 @@ from bizops.infrastructure.seed.world import USERS, World, build_world
 
 PRINCIPALS_DDL = """
 CREATE TABLE IF NOT EXISTS principals (
-    user TEXT PRIMARY KEY, roles TEXT NOT NULL, token TEXT NOT NULL UNIQUE
+    user TEXT PRIMARY KEY, roles TEXT NOT NULL, token_hash TEXT UNIQUE, token_issued_at TEXT
 );
 """
 SCHEMAS = [
@@ -52,10 +52,9 @@ def seed_tenant(data_dir: Path, tenant: str, seed: int = 42) -> World:
         for ddl in SCHEMAS:
             conn.executescript(ddl)
         conn.execute("BEGIN")
-        for user, roles in USERS.items():
-            token = hashlib.sha256(f"{tenant}:{user}:{seed}".encode()).hexdigest()[:24]
+        for user, roles in USERS.items():  # no credentials: tokens are issued with `bizops token issue`
             conn.execute(
-                "INSERT INTO principals VALUES (?,?,?)", (user, ",".join(sorted(roles)), f"bo_{token}")
+                "INSERT INTO principals (user, roles) VALUES (?, ?)", (user, ",".join(sorted(roles)))
             )
         for fixture in FIXTURES:
             fixture(conn, w)

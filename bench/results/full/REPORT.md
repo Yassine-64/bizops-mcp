@@ -1,10 +1,10 @@
 # BizOpsBench report: full
 
-Model claude-sonnet-5-5; 100 scenarios; 1 repeat(s); 690 runs; total $33.07. Confidence intervals resample 52 template families, not scenarios: parametrised cases of one template are not independent.
+Model claude-sonnet-5-5; 100 scenarios; 1 repeat(s); 690 runs; estimated cost $33.07 at list prices as of 2026-10-06. Confidence intervals resample 52 template families, not scenarios: parametrised cases of one template are not independent.
 
 ## Table A at 27 capabilities: the interface (full control plane behind every surface)
 
-| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok | Surface tok | Calls | $/task | p50 / p95 s |
+| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok | Surface tok | Calls | est. $/task | p50 / p95 s |
 |---|---|---|---|---|---|---|---|---|---|
 | static | 100% (100%–100%) | 96% | 99% | 17,256 | 466 | 4,563 | 3.0 | $0.0222 | 4.8 / 17.8 |
 | tool_search | 95% (89%–99%) | 89% | 98% | 16,053 | 676 | 643 | 3.5 | $0.0270 | 9.9 / 22.9 |
@@ -31,7 +31,7 @@ Model claude-sonnet-5-5; 100 scenarios; 1 repeat(s); 690 runs; total $33.07. Con
 
 ## Table A at 500 capabilities: the interface (full control plane behind every surface)
 
-| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok | Surface tok | Calls | $/task | p50 / p95 s |
+| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok | Surface tok | Calls | est. $/task | p50 / p95 s |
 |---|---|---|---|---|---|---|---|---|---|
 | static | 99% (97%–100%) | 96% | 99% | 215,101 | 439 | 69,995 | 2.8 | $0.2119 | 5.5 / 11.4 |
 | tool_search | 92% (85%–98%) | 90% | 96% | 16,573 | 657 | 643 | 3.2 | $0.0291 | 10.6 / 19.0 |

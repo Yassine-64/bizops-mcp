@@ -3,6 +3,8 @@ the SQLite file. Nothing the model sends can change either."""
 
 from __future__ import annotations
 
+import hashlib
+import secrets
 import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -41,7 +43,7 @@ class TenantDatabases:
             return None
         conn = self.connect(tenant)
         try:
-            row = db.one(conn, "SELECT user, roles FROM principals WHERE token = ?", (token,))
+            row = db.one(conn, "SELECT user, roles FROM principals WHERE token_hash = ?", (_digest(token),))
         finally:
             conn.close()
         if row is None:
@@ -59,6 +61,30 @@ class TenantDatabases:
                 return principal
         return None
 
+    def issue_token(self, tenant: str, user: str) -> str:
+        """A new random token for one principal. Only its SHA-256 is stored, and issuing again revokes the old
+        one. The plaintext is returned once and never written anywhere by bizops."""
+        token = f"bo_{secrets.token_urlsafe(32)}"
+        self._set_token(tenant, user, _digest(token))
+        return token
+
+    def revoke_token(self, tenant: str, user: str) -> None:
+        self._set_token(tenant, user, None)
+
+    def _set_token(self, tenant: str, user: str, digest: str | None) -> None:
+        from datetime import UTC, datetime
+
+        conn = self.connect(tenant)
+        try:
+            changed = conn.execute(
+                "UPDATE principals SET token_hash = ?, token_issued_at = ? WHERE user = ?",
+                (digest, datetime.now(UTC).isoformat() if digest else None, user),
+            ).rowcount
+        finally:
+            conn.close()
+        if changed != 1:
+            raise LookupError(f"no principal {tenant}/{user}")
+
     def principal(self, tenant: str, user: str) -> Principal | None:
         """Dev convenience for stdio: name the principal instead of presenting a token."""
         conn = self.connect(tenant)
@@ -67,6 +93,12 @@ class TenantDatabases:
         finally:
             conn.close()
         return principal_for(tenant, user, set(str(row["roles"]).split(","))) if row else None
+
+
+def _digest(token: str) -> str:
+    # ponytail: plain SHA-256 is enough for 256-bit random tokens (no dictionary to attack); a slow KDF only
+    # matters for human-chosen secrets
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 __all__ = ["TenantDatabases"]

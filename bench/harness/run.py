@@ -20,6 +20,7 @@ from typing import Any
 
 from bench.harness.agent import Arm, api_tools, run_agent
 from bench.harness.grade import grade
+from bench.harness.pricing import estimated_cost, require_priced
 from bench.harness.scenario import Scenario, load_scenarios
 from bench.scaling.distractors import with_distractors
 from bizops.application.config import ControlPlaneConfig
@@ -27,26 +28,11 @@ from bizops.infrastructure.container import build_container
 from bizops.infrastructure.seed import seed_tenant
 from bizops.infrastructure.settings import Settings
 
-PRICES = {  # $/MTok: input, output, cache write (1.25x input), cache read
-    "claude-sonnet-5-5": (2.0, 10.0, 2.5, 0.20),
-    "claude-opus-5-5": (4.0, 20.0, 5.0, 0.20),
-    "claude-haiku-5-5": (0.10, 0.50, 0.125, 0.01),
-}
 CONFIGS = {
     "full": ControlPlaneConfig(name="full"),
     "approvals-only": ControlPlaneConfig(name="approvals-only", journal=False),
     "scopes-only": ControlPlaneConfig(name="scopes-only", approvals=False, journal=False),
 }
-
-
-def cost(model: str, usage: dict[str, int]) -> float:
-    p_in, p_out, p_cw, p_cr = PRICES.get(model, PRICES["claude-sonnet-5-5"])
-    return (
-        usage["input_tokens"] * p_in
-        + usage["output_tokens"] * p_out
-        + usage["cache_write_tokens"] * p_cw
-        + usage["cache_read_tokens"] * p_cr
-    ) / 1e6
 
 
 TRANSIENT = (
@@ -132,7 +118,7 @@ async def run_one(
             "billed_input_tokens": usage["input_tokens"]
             + usage["cache_write_tokens"]
             + usage["cache_read_tokens"],
-            "cost_usd": round(cost(model, usage), 6),
+            "cost_usd": round(estimated_cost(model, usage), 6),
             "tool_calls": len(t.tool_calls),
             "calls": t.tool_calls,
             "approvals": t.approvals,
@@ -169,6 +155,7 @@ async def surface_tokens(
 async def main_run(args: argparse.Namespace) -> None:
     from anthropic import AsyncAnthropic
 
+    require_priced(args.model)  # fail before spending anything, not after
     settings = Settings()
     client = AsyncAnthropic(api_key=settings.anthropic_api_key, max_retries=4, timeout=180.0)
     scenarios = load_scenarios(Path(args.scenarios))

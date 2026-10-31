@@ -1,10 +1,10 @@
 # BizOpsBench report: pilot
 
-Model claude-sonnet-5-5; 15 scenarios; 2 repeat(s); 90 runs; total $1.53. Confidence intervals resample 15 template families, not scenarios: parametrised cases of one template are not independent.
+Model claude-sonnet-5-5; 15 scenarios; 2 repeat(s); 90 runs; estimated cost $1.53 at list prices as of 2026-10-06. Confidence intervals resample 15 template families, not scenarios: parametrised cases of one template are not independent.
 
 ## Table A at 25 capabilities: the interface (full control plane behind every surface)
 
-| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok | Surface tok | Calls | $/task | p50 / p95 s |
+| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok | Surface tok | Calls | est. $/task | p50 / p95 s |
 |---|---|---|---|---|---|---|---|---|---|
 | static | 100% (100%–100%) | 100% | 100% | 15,661 | 496 | 4,229 | 2.9 | $0.0182 | 7.9 / 27.3 |
 | tool_search | 100% (100%–100%) | 100% | 100% | 10,484 | 572 | 643 | 2.6 | $0.0192 | 10.6 / 34.7 |

@@ -36,7 +36,7 @@ project.
 | Failure injection | `rate_limit_once`, `timeout_once`, `credential_expired`, `commit_then_drop` at the connector boundary |
 | Observability | OpenTelemetry spans for run, step, policy, connector, discovery and approvals in the same trace as the Anthropic SDK's spans; ids and decisions only, never arguments or customer text |
 | Replay | `bizops replay <run>` re-runs a recorded run through today's policy and executor against its recorded results and reports drift or tampering |
-| Transports | stdio for one principal; Streamable HTTP with bearer tokens, 401 before MCP, tenant and roles from the token |
+| Transports | stdio for one principal; Streamable HTTP with bearer tokens (random, stored as SHA-256, rotate and revoke with `bizops token`), 401 before MCP, tenant and roles from the token |
 | BizOpsBench | 100 scenarios (read, multi-system, write, approval, failure, security), facts computed by checkers from the seeded database, deterministic grading, paired family bootstrap |
 
 ## Architecture
@@ -62,16 +62,18 @@ when it holds several modules. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 uv sync --all-extras
 uv run bizops seed --tenant acme
 uv run bizops serve --principal acme/carol                 # MCP over stdio
-uv run bizops serve --transport http --port 8765           # bearer tokens from the principals table
-make check                                                 # ruff, mypy strict, 277 tests, no API key
+uv run bizops token issue acme/carol                       # prints a random token once; only its hash is stored
+uv run bizops serve --transport http --port 8765           # Authorization: Bearer <token>
+make check                                                 # ruff, mypy strict, 279 tests, no API key
 uv run python -m bench run --scenarios bench/scenarios --arms static,tool_search,discover --catalogue 500
 ```
 
 ## Evaluation
 
 Claude Sonnet 5.5 (`claude-sonnet-5-5`, effort medium), one manual tool loop for every arm, identical tasks,
-seed, principal, policy, connectors and chaos; only the agent-facing surface changes. 690 runs, $33.07, no run
-excluded for API failures. Intervals are 95% paired bootstraps over **52 template families**, not 100
+seed, principal, policy, connectors and chaos; only the agent-facing surface changes. 690 runs, an estimated
+$33.07 at list prices as of 2026-10-06 (costs below are estimates from token counts), no run excluded for API
+failures. Intervals are 95% paired bootstraps over **52 template families**, not 100
 scenarios, because parametrised cases of one template are not independent. Methodology:
 [docs/BENCH.md](docs/BENCH.md). Tables are pasted from
 [`bench/results/full/REPORT.md`](bench/results/full/REPORT.md), never typed by hand.
@@ -80,7 +82,7 @@ scenarios, because parametrised cases of one template are not independent. Metho
 
 **27 capabilities** (the real catalogue)
 
-| Surface | Success (95% CI) | Billed input tokens / task | Tool-surface tokens | Calls | $ / task | p50 s |
+| Surface | Success (95% CI) | Billed input tokens / task | Tool-surface tokens | Calls | est. $ / task | p50 s |
 |---|---|---|---|---|---|---|
 | static: one tool per capability | 100% (100–100) | 17,256 | 4,563 | 3.0 | $0.0222 | 4.8 |
 | Anthropic tool search (deferred, BM25) | 95% (89–99) | 16,053 | 643 | 3.5 | $0.0270 | 9.9 |
@@ -88,7 +90,7 @@ scenarios, because parametrised cases of one template are not independent. Metho
 
 **500 capabilities** (27 real plus 473 near-miss distractors such as `accounting.invoices.list`)
 
-| Surface | Success (95% CI) | Billed input tokens / task | Tool-surface tokens | Calls | $ / task | p50 s |
+| Surface | Success (95% CI) | Billed input tokens / task | Tool-surface tokens | Calls | est. $ / task | p50 s |
 |---|---|---|---|---|---|---|
 | static | 99% (97–100) | 215,101 | 69,995 | 2.8 | $0.2119 | 5.5 |
 | tool search | 92% (85–98) | 16,573 | 643 | 3.2 | $0.0291 | 10.6 |
@@ -173,4 +175,4 @@ uv run python -m bench.harness.generate     # regenerate the 85 parametrised sce
 uv run python -m bench report bench/results/full
 ```
 
-MIT.
+[MIT](LICENSE).
