@@ -33,6 +33,10 @@ def _pct(x: float) -> str:
     return f"{100 * x:.0f}%"
 
 
+def _size(r: Row) -> int:
+    return int(r.get("catalogue", 25))
+
+
 def table_a(rows: list[Row], surfaces: dict[str, int]) -> str:
     out = [
         "| Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok "
@@ -129,7 +133,25 @@ def gates(rows: list[Row], excluded: int) -> str:
 
 def write_report(d: Path) -> str:
     rows, excluded = _load(d)
-    surfaces = json.loads((d / "surfaces.json").read_text()) if (d / "surfaces.json").exists() else {}
+    raw = json.loads((d / "surfaces.json").read_text()) if (d / "surfaces.json").exists() else {}
+    by_size: dict[str, dict[str, int]] = (
+        raw if raw and isinstance(next(iter(raw.values())), dict) else {"0": raw}
+    )
+    sizes = sorted({_size(r) for r in rows})
+
+    def surf(size: int) -> dict[str, int]:
+        """Surface tokens for a padded catalogue are keyed by its size; the real catalogue by "0"."""
+        return by_size.get(str(size)) or by_size.get("0", {})
+
+    per_size: list[str] = []
+    for size in sizes:
+        rs = [r for r in rows if _size(r) == size]
+        per_size += [
+            f"## Table A at {size} capabilities: the interface (full control plane behind every surface)",
+            table_a(rs, surf(size)),
+            f"## Paired differences at {size} capabilities",
+            paired(rs),
+        ]
     models = sorted({r["model"] for r in rows})
     repeats = max(r["repeat"] for r in rows) + 1
     text = (
@@ -138,16 +160,19 @@ def write_report(d: Path) -> str:
                 f"# BizOpsBench report: {d.name}",
                 f"Model {', '.join(models)}; {len({r['scenario'] for r in rows})} scenarios; {repeats} repeat(s); "
                 f"{len(rows)} runs; total ${sum(r['cost_usd'] for r in rows):.2f}.",
-                "## Table A: the interface (full control plane behind every surface)",
-                table_a(rows, surfaces),
-                "## Paired differences",
-                paired(rows),
+                *per_size,
                 "## Table B: control-plane ablation (discover surface)",
                 table_b(rows),
                 "## Invariant gates (full configuration)",
                 gates(rows, excluded),
-                "## Per scenario (successes / runs)",
-                per_scenario(rows),
+                *[
+                    x
+                    for size in sizes
+                    for x in (
+                        f"## Per scenario at {size} capabilities (successes / runs)",
+                        per_scenario([r for r in rows if _size(r) == size]),
+                    )
+                ],
             ]
         )
         + "\n"

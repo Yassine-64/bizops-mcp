@@ -129,6 +129,11 @@ class Registry:
     def get(self, name: str) -> Bound | None:
         return self._bound.get(name)
 
+    def copy(self) -> Registry:
+        clone = Registry()
+        clone._bound = dict(self._bound)
+        return clone
+
     def with_handler(self, name: str, handler: Handler) -> Registry:
         """A copy in which one capability runs through another handler (failure injection, tracing)."""
         bound = self._bound[name]
