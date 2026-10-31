@@ -86,6 +86,17 @@ class Container:
 
         return StaticSurface(self.registry, self.executor, self.gates)  # tool_search presents the same tools
 
+    def with_chaos(self, profile: str, capability: str) -> Container:
+        """A sibling whose registry fails once on `capability` in the named way (bench and tests)."""
+        from bizops.infrastructure.connectors.chaos import with_chaos
+
+        sibling = replace(self)
+        sibling.__dict__["registry"] = with_chaos(self.registry, profile, capability)  # type: ignore[arg-type]
+        for shared in ("tenants", "journal"):
+            if shared in self.__dict__:
+                sibling.__dict__[shared] = self.__dict__[shared]
+        return sibling
+
     def with_config(self, config: ControlPlaneConfig) -> Container:
         """A sibling container for another experiment config. Stateless engines are shared; anything built
         from the config (gates, dispatcher, executor) is rebuilt."""

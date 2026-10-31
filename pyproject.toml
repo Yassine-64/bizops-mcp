@@ -53,6 +53,7 @@ known-first-party = ["bizops", "bench", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/bizops/interfaces/**" = ["B008"]
+"bench/harness/report.py" = ["E501"]  # markdown table rows stay on one line
 
 [tool.mypy]
 python_version = "3.12"

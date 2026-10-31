@@ -1,7 +1,7 @@
 id: read-declining-usage
 category: read
 principal: acme/alice
-task: Which active accounts have product usage down more than 30% compared with two months ago?
+task: "Which active accounts have product usage down more than 30% compared with two months ago?"
 expect:
   checker: declining_usage
   mention: [accounts]

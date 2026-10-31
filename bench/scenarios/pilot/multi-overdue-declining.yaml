@@ -1,7 +1,7 @@
 id: multi-overdue-declining
 category: multi
 principal: acme/carol
-task: Find accounts that have overdue invoices and declining product usage. These are our churn risks.
+task: "Find accounts that have overdue invoices and declining product usage. These are our churn risks."
 expect:
   checker: overdue_and_declining
   mention: [accounts]

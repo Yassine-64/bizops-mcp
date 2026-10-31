@@ -1,7 +1,7 @@
 id: read-overdue-enterprise
 category: read
 principal: acme/carol
-task: List the overdue invoices of enterprise accounts, with the invoice ids and the total amount overdue.
+task: "List the overdue invoices of enterprise accounts, with the invoice ids and the total amount overdue."
 expect:
   checker: overdue_invoices
   args: [enterprise]

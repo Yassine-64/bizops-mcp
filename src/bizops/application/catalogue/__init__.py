@@ -123,6 +123,13 @@ class Registry:
     def get(self, name: str) -> Bound | None:
         return self._bound.get(name)
 
+    def with_handler(self, name: str, handler: Handler) -> Registry:
+        """A copy in which one capability runs through another handler (failure injection, tracing)."""
+        bound = self._bound[name]
+        copy = Registry()
+        copy._bound = {**self._bound, name: Bound(bound.capability, handler)}
+        return copy
+
     def capabilities(self) -> list[Capability]:
         return [b.capability for b in self._bound.values()]
 
