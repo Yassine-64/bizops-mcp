@@ -2,7 +2,7 @@
 
 Model claude-sonnet-5-5; 15 scenarios; 2 repeat(s); 90 runs; total $1.53.
 
-## Table A: the interface (full control plane behind every surface)
+## Table A at 25 capabilities: the interface (full control plane behind every surface)
 
 | Surface | Success (95% CI) | Trajectory correct | Approval correct | Billed input tok | Output tok | Surface tok | Calls | $/task | p50 / p95 s |
 |---|---|---|---|---|---|---|---|---|---|
@@ -10,7 +10,7 @@ Model claude-sonnet-5-5; 15 scenarios; 2 repeat(s); 90 runs; total $1.53.
 | tool_search | 100% (100%–100%) | 100% | 100% | 10,484 | 572 | 643 | 2.6 | $0.0192 | 10.6 / 34.7 |
 | discover | 100% (100%–100%) | 100% | 100% | 8,882 | 554 | 897 | 3.5 | $0.0135 | 8.2 / 31.8 |
 
-## Paired differences
+## Paired differences at 25 capabilities
 
 | Comparison | Δ success (95% CI) | Δ billed input tokens (95% CI) | Scenarios |
 |---|---|---|---|
@@ -31,7 +31,7 @@ Model claude-sonnet-5-5; 15 scenarios; 2 repeat(s); 90 runs; total $1.53.
 - graded runs with an error: 0
 - runs excluded after three transient API failures: 0
 
-## Per scenario (successes / runs)
+## Per scenario at 25 capabilities (successes / runs)
 
 | Scenario | static | tool_search | discover |
 |---|---|---|---|

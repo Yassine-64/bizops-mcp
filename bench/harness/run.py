@@ -21,6 +21,7 @@ from typing import Any
 from bench.harness.agent import Arm, api_tools, run_agent
 from bench.harness.grade import grade
 from bench.harness.scenario import Scenario, load_scenarios
+from bench.scaling.distractors import with_distractors
 from bizops.application.config import ControlPlaneConfig
 from bizops.infrastructure.config.settings import Settings
 from bizops.infrastructure.di.container import build_container
@@ -62,8 +63,15 @@ def transient(row: dict[str, Any]) -> bool:
     return bool(row.get("error")) and str(row["error"]).startswith(TRANSIENT)
 
 
-def _key(row: dict[str, Any]) -> tuple[str, str, str, int]:
-    return (row["scenario"], row["arm"], row["config"], int(row["repeat"]))
+def _key(row: dict[str, Any]) -> tuple[str, str, str, int, int]:
+    return (row["scenario"], row["arm"], row["config"], int(row["repeat"]), int(row.get("catalogue", 25)))
+
+
+def _real_size(catalogue: int) -> int:
+    """The catalogue size a run records: the real capabilities, or the padded total."""
+    from bizops.infrastructure.connectors import build_registry
+
+    return max(catalogue, len(build_registry()))
 
 
 def _template(root: Path, seed: int) -> Path:
@@ -84,6 +92,7 @@ async def run_one(
     repeat: int,
     work: Path,
     template: Path,
+    catalogue: int = 0,
 ) -> dict[str, Any]:
     data = work / uuid.uuid4().hex[:10]
     shutil.copytree(template, data)
@@ -91,6 +100,8 @@ async def run_one(
         settings = Settings(_env_file=None, data_dir=data, llm="anthropic", model=model)  # type: ignore[call-arg]
         surface_name = "discover" if arm == "discover" else "static"
         container = build_container(settings, config.model_copy(update={"surface": surface_name}))
+        if catalogue:
+            container = container.with_registry(with_distractors(container.registry, catalogue))
         if scenario.chaos:
             container = container.with_chaos(scenario.chaos.profile, scenario.chaos.capability)
         tenant, user = scenario.principal.split("/")
@@ -115,6 +126,7 @@ async def run_one(
             "config": config.name,
             "model": model,
             "repeat": repeat,
+            "catalogue": len(container.registry),
             **g.as_dict(),
             "usage": usage,
             "billed_input_tokens": usage["input_tokens"]
@@ -134,13 +146,17 @@ async def run_one(
         shutil.rmtree(data, ignore_errors=True)
 
 
-async def surface_tokens(client: Any, model: str, template: Path, arms: list[Arm]) -> dict[str, int]:
+async def surface_tokens(
+    client: Any, model: str, template: Path, arms: list[Arm], catalogue: int = 0
+) -> dict[str, int]:
     """Serialized tool-surface size as the API counts it: tokens with the tools minus tokens without."""
     data = template.parent / "surface-probe"
     shutil.copytree(template, data, dirs_exist_ok=True)
     container = build_container(
         Settings(_env_file=None, data_dir=data, llm="anthropic"), ControlPlaneConfig()
     )  # type: ignore[call-arg]
+    if catalogue:
+        container = container.with_registry(with_distractors(container.registry, catalogue))
     msg = [{"role": "user", "content": "hello"}]
     base = (await client.messages.count_tokens(model=model, messages=msg)).input_tokens
     out = {}
@@ -160,18 +176,22 @@ async def main_run(args: argparse.Namespace) -> None:
     scenarios = load_scenarios(Path(args.scenarios))
     if args.only:
         scenarios = [s for s in scenarios if s.id in set(args.only.split(","))]
+    if args.categories:
+        scenarios = [s for s in scenarios if s.category in set(args.categories.split(","))]
     arms: list[Arm] = [a for a in args.arms.split(",")]  # type: ignore[misc]
     out = Path(args.out)
     work = out / ".work"
     template = _template(work, args.seed)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "surfaces.json").write_text(
-        json.dumps(await surface_tokens(client, args.model, template, arms), indent=2)
-    )
+    surfaces_file = out / "surfaces.json"
+    surfaces = json.loads(surfaces_file.read_text()) if surfaces_file.exists() else {}
+    size = args.catalogue or 0
+    surfaces[str(size)] = await surface_tokens(client, args.model, template, arms, size)
+    surfaces_file.write_text(json.dumps(surfaces, indent=2))
 
     results = out / "results.jsonl"
     kept: list[str] = []
-    done_keys: set[tuple[str, str, str, int]] = set()
+    done_keys: set[tuple[str, str, str, int, int]] = set()
     if results.exists():  # resume: keep graded rows, drop transient failures so they run again
         for line in results.read_text().splitlines():
             row = json.loads(line)
@@ -185,7 +205,7 @@ async def main_run(args: argparse.Namespace) -> None:
         for s in scenarios
         for a in arms
         for c in args.configs.split(",")
-        if (s.id, a, c, r) not in done_keys
+        if (s.id, a, c, r, _real_size(args.catalogue)) not in done_keys
     ]
     sem = asyncio.Semaphore(args.concurrency)
     sink = results.open("a")
@@ -196,7 +216,7 @@ async def main_run(args: argparse.Namespace) -> None:
         nonlocal done
         async with sem:
             for attempt in range(1, 4):
-                row = await run_one(client, s, a, CONFIGS[c], args.model, r, work, template)
+                row = await run_one(client, s, a, CONFIGS[c], args.model, r, work, template, args.catalogue)
                 row["attempt"] = attempt
                 if not transient(row):
                     break
@@ -228,7 +248,11 @@ def main() -> None:
     r.add_argument("--concurrency", type=int, default=4)
     r.add_argument("--seed", type=int, default=42)
     r.add_argument("--only", default="", help="comma-separated scenario ids")
+    r.add_argument(
+        "--categories", default="", help="comma-separated categories, e.g. approval,failure,security"
+    )
     r.add_argument("--out", default="bench/results/pilot")
+    r.add_argument("--catalogue", type=int, default=0, help="pad the catalogue with distractors to this size")
     p = sub.add_parser("report")
     p.add_argument("dir")
     args = ap.parse_args()
