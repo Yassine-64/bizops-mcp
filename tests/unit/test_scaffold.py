@@ -1,9 +1,9 @@
 from bizops.application.config import ControlPlaneConfig
-from bizops.infrastructure.di.container import Container
+from bizops.infrastructure.container import Container
 
 
 def test_container_builds_offline(container: Container) -> None:
-    assert container.settings.llm == "scripted"
+    assert container.settings.data_dir.exists()
     assert container.config.surface == "discover"
 
 

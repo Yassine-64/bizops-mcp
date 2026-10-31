@@ -13,7 +13,7 @@ from bizops.application.config import ControlPlaneConfig
 from bizops.application.execution.executor import Executor
 from bizops.domain.models.run import RunStatus, StepStatus
 from bizops.infrastructure.connectors.chaos import PROFILES
-from bizops.infrastructure.di.container import Container
+from bizops.infrastructure.container import Container
 from tests.conftest import who
 
 pytestmark = pytest.mark.integration

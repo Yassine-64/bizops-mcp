@@ -6,13 +6,13 @@ import pytest
 
 from bizops.application.config import ControlPlaneConfig
 from bizops.domain.models import Principal
-from bizops.infrastructure.config.settings import Settings
-from bizops.infrastructure.di.container import Container, build_container
+from bizops.infrastructure.container import Container, build_container
 from bizops.infrastructure.seed import seed_tenant
+from bizops.infrastructure.settings import Settings
 
 
 def offline_settings(data_dir: Path, **overrides: object) -> Settings:
-    return Settings(_env_file=None, data_dir=data_dir, llm="scripted", **overrides)  # type: ignore[arg-type]
+    return Settings(_env_file=None, data_dir=data_dir, **overrides)  # type: ignore[arg-type]
 
 
 @pytest.fixture

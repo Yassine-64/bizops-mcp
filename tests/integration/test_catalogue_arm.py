@@ -8,7 +8,7 @@ import pytest
 from bench.scaling.distractors import with_distractors
 from bizops.domain.exceptions import NotFound
 from bizops.domain.models.capability import Effect
-from bizops.infrastructure.di.container import Container
+from bizops.infrastructure.container import Container
 from tests.conftest import who
 
 pytestmark = pytest.mark.integration

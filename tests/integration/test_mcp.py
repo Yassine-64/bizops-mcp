@@ -12,8 +12,8 @@ import pytest
 from mcp import Client
 
 from bench.checkers import last_payment, refunds_for_payment
-from bizops.infrastructure.di.container import Container
-from bizops.interfaces.mcp.server import build_server
+from bizops.infrastructure.container import Container
+from bizops.interfaces.mcp_server import build_server
 from tests.conftest import who
 
 pytestmark = pytest.mark.integration

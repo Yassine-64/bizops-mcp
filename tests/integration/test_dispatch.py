@@ -10,7 +10,7 @@ from bench.checkers import last_payment, refunds_for_payment
 from bizops.domain.exceptions import NotFound
 from bizops.domain.models.capability import Effect
 from bizops.infrastructure.connectors._base import MAX_LIMIT
-from bizops.infrastructure.di.container import Container
+from bizops.infrastructure.container import Container
 from tests.conftest import who
 
 pytestmark = pytest.mark.integration

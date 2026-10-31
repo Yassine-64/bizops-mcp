@@ -7,7 +7,15 @@ from datetime import date
 from enum import StrEnum
 from typing import Any
 
-from bizops.domain.models import Principal, Risk
+from bizops.domain.models.principal import Principal
+
+
+class Risk(StrEnum):
+    READ = "read"
+    WRITE = "write"
+    FINANCIAL = "financial"
+    DESTRUCTIVE = "destructive"
+    ADMIN = "admin"
 
 
 @dataclass(frozen=True)
@@ -90,4 +98,4 @@ class CallContext:
     extra: dict[str, Any] = field(default_factory=dict)
 
 
-__all__ = ["CallContext", "Capability", "Decision", "Effect", "Parameter", "PolicyGates"]
+__all__ = ["CallContext", "Capability", "Decision", "Effect", "Parameter", "PolicyGates", "Risk"]
