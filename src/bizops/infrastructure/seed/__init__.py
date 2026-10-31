@@ -14,7 +14,7 @@ from bizops.infrastructure.connectors.crm import store as crm_store
 from bizops.infrastructure.connectors.engineering import store as engineering_store
 from bizops.infrastructure.connectors.support import store as support_store
 from bizops.infrastructure.connectors.usage import store as usage_store
-from bizops.infrastructure.db import sqlite as _sqlite
+from bizops.infrastructure.db import connection as _sqlite
 from bizops.infrastructure.seed import billing, crm, engineering, support, usage
 from bizops.infrastructure.seed.world import USERS, World, build_world
 

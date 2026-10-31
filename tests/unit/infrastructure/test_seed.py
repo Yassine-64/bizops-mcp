@@ -7,8 +7,8 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-from bench.checkers import CHECKERS, mrr_by_month
 
+from bench.checkers import CHECKERS, mrr_by_month
 from bizops.infrastructure.seed import World, content_hash, seed_tenant
 from bizops.infrastructure.seed.engineering import LATE_PROJECT
 
