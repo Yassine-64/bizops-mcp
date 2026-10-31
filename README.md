@@ -175,4 +175,4 @@ uv run python -m bench.harness.generate     # regenerate the 85 parametrised sce
 uv run python -m bench report bench/results/full
 ```
 
-MIT.
+[MIT](LICENSE).
