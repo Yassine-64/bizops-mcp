@@ -8,6 +8,7 @@ from enum import StrEnum
 from typing import Any
 
 from bizops.domain.models.principal import Principal
+from bizops.domain.services.canonical import canonical_args
 
 
 class Risk(StrEnum):
@@ -40,6 +41,7 @@ class Capability:
     send: bool = False  # externally visible message: always needs approval, never adoptable on resume
     idempotent: bool = False  # a write the connector can look up by operation_id
     amount_field: str | None = None  # for financial risk: which argument carries cents
+    identity: tuple[str, ...] = ()  # arguments that define the effect; empty means all of them
 
     @property
     def connector(self) -> str:
@@ -48,6 +50,11 @@ class Capability:
     @property
     def is_write(self) -> bool:
         return self.risk is not Risk.READ
+
+    def effect_key(self, args: dict[str, Any]) -> str:
+        """Same key, same effect: free text such as a refund reason never makes a repeat look new."""
+        chosen = {k: args.get(k) for k in self.identity} if self.identity else args
+        return canonical_args(chosen)
 
     def input_schema(self) -> dict[str, Any]:
         props: dict[str, dict[str, Any]] = {}

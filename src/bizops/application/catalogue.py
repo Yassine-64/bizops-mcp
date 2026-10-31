@@ -52,6 +52,7 @@ class Spec:
     idempotent: bool = False
     amount_field: str | None = None
     output: str = "Result"
+    identity: tuple[str, ...] = ()
 
 
 def capability(
@@ -63,12 +64,13 @@ def capability(
     idempotent: bool = False,
     amount_field: str | None = None,
     output: str = "Result",
+    identity: tuple[str, ...] = (),
 ) -> Callable[[Handler], Handler]:
     """Mark a connector method as a capability. The method signature is `(self, ctx, **params)`.
     `name` is the dotted name under the connector prefix (defaults to the method name)."""
 
     def mark(fn: Handler) -> Handler:
-        spec = Spec(risk, frozenset(scopes), name, send, idempotent, amount_field, output)
+        spec = Spec(risk, frozenset(scopes), name, send, idempotent, amount_field, output, identity)
         fn.__bizops_spec__ = spec  # type: ignore[attr-defined]
         return fn
 
@@ -118,6 +120,7 @@ class Registry:
             send=spec.send,
             idempotent=spec.idempotent,
             amount_field=spec.amount_field,
+            identity=spec.identity,
         )
 
     def add(self, capability: Capability, handler: Handler) -> None:

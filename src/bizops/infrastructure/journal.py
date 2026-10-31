@@ -71,7 +71,15 @@ class SqliteJournal:
     def _insert_step(self, s: Step) -> None:
         self.db.execute(
             "INSERT INTO steps (id, run_id, seq, capability, args, canonical, status) VALUES (?,?,?,?,?,?,?)",
-            (s.id, s.run_id, s.seq, s.capability, json.dumps(s.args), canonical_args(s.args), s.status),
+            (
+                s.id,
+                s.run_id,
+                s.seq,
+                s.capability,
+                json.dumps(s.args),
+                s.identity or canonical_args(s.args),
+                s.status,
+            ),
         )
 
     def get_run(self, run_id: str) -> Run | None:
@@ -105,6 +113,7 @@ class SqliteJournal:
             result=json.loads(r["result"]) if r["result"] is not None else None,
             error=r["error"],
             ms=r["ms"],
+            identity=r["canonical"],
         )
 
     def save_step(self, s: Step) -> None:

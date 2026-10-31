@@ -163,6 +163,7 @@ class BillingConnector:
         idempotent=True,
         amount_field="amount_cents",
         output="Refund",
+        identity=("payment_id", "amount_cents"),
     )
     async def refund_payment(
         self, ctx: CallContext, payment_id: str, amount_cents: int, reason: str

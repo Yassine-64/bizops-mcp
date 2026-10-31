@@ -67,6 +67,7 @@ class Step:
     result: Any = None
     error: str | None = None
     ms: float = 0.0
+    identity: str = ""  # the effect key: same capability + same identity = same effect (duplicate guard)
 
 
 @dataclass
