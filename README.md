@@ -64,7 +64,7 @@ uv run bizops seed --tenant acme
 uv run bizops serve --principal acme/carol                 # MCP over stdio
 uv run bizops token issue acme/carol                       # prints a random token once; only its hash is stored
 uv run bizops serve --transport http --port 8765           # Authorization: Bearer <token>
-make check                                                 # ruff, mypy strict, 277 tests, no API key
+make check                                                 # ruff, mypy strict, 279 tests, no API key
 uv run python -m bench run --scenarios bench/scenarios --arms static,tool_search,discover --catalogue 500
 ```
 
